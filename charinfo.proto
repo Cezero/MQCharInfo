@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package mq.proto.charinfo;
+
+enum CharInfoMessageId {
+  None = 0;
+  Publish = 1;
+  Remove = 2;
+}
+
+message SpellInfo {
+  string name = 1;
+  int32 id = 2;
+  int32 category = 3;
+  int32 level = 4;
+}
+
+message BuffEntry {
+  int32 duration = 1;  // -1 or 0 for permanent/unknown
+  SpellInfo spell = 2;
+}
+
+message ClassInfo {
+  string name = 1;
+  string short_name = 2;
+  int32 id = 3;
+}
+
+message TargetInfo {
+  string name = 1;
+  int32 id = 2;
+}
+
+message ZoneInfo {
+  string name = 1;
+  string short_name = 2;
+  int32 id = 3;
+}
+
+message CharInfoPublish {
+  string sender = 1;
+  string name = 2;
+  int32 id = 3;
+  int32 level = 4;
+  ClassInfo class_info = 5;
+  int32 pct_hps = 6;
+  int32 pct_mana = 7;
+  TargetInfo target = 8;
+  int32 target_hp = 9;
+  ZoneInfo zone = 10;
+  repeated BuffEntry buff = 11;
+  repeated BuffEntry short_buff = 12;
+  repeated BuffEntry pet_buff = 13;
+  int32 free_buff_slots = 14;
+  int32 detrimentals = 15;
+  int32 count_poison = 16;
+  int32 count_disease = 17;
+  int32 count_curse = 18;
+  int32 count_corruption = 19;
+  int32 pet_hp = 20;
+  int32 max_endurance = 21;
+}
+
+message CharInfoRemove {
+  string sender = 1;
+}
+
+message CharInfoMessage {
+  CharInfoMessageId id = 1;
+  CharInfoPublish publish = 2;
+  CharInfoRemove remove = 3;
+}
