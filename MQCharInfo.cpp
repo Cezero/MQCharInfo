@@ -5,6 +5,7 @@
 
 #include "mq/Plugin.h"
 #include "CharInfo.h"
+#include "CharInfoPanel.h"
 #include "charinfo.pb.h"
 
 #include <chrono>
@@ -85,12 +86,15 @@ static void SendRemove()
 
 PLUGIN_API void InitializePlugin()
 {
+	WriteChatf("[MQCharInfo]: Initialized. version %.2f", charinfo::CHARINFO_VERSION);
 	s_charinfoDropbox = postoffice::AddActor("charinfo", HandleMessage);
 	s_nextPublish = std::chrono::steady_clock::now();
+	AddSettingsPanel("plugins/Charinfo", DrawCharInfoPanel);
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
+	RemoveSettingsPanel("plugins/Charinfo");
 	SendRemove();
 	s_charinfoDropbox.Remove();
 }

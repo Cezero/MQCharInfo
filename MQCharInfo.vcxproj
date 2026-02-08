@@ -118,6 +118,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="CharInfo.cpp" />
+    <ClCompile Include="CharInfoPanel.cpp" />
     <ClCompile Include="LuaModule.cpp" />
     <ClCompile Include="MQCharInfo.cpp" />
     <ClCompile Include="charinfo.pb.cc">
@@ -127,6 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CharInfo.h" />
+    <ClInclude Include="CharInfoPanel.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="charinfo.pb.h">
       <DependentUpon>charinfo.proto</DependentUpon>

@@ -13,12 +13,27 @@
 #include "charinfo.pb.h"
 #include "mq/Plugin.h"
 
+#include <eqlib/game/Spells.h>
+
 #include <sol/sol.hpp>
 #include <algorithm>
 #include <mutex>
 #include <vector>
 
 using namespace mq::proto::charinfo;
+
+namespace {
+
+// Push charinfo::StateBitsToStrings / BuffStateBitsToStrings into a Lua table (1-based array).
+static sol::table StringsToLuaTable(sol::state_view L, const std::vector<std::string>& strs)
+{
+	sol::table arr = L.create_table();
+	for (size_t i = 0; i < strs.size(); i++)
+		arr[i + 1] = strs[i];
+	return arr;
+}
+
+} // namespace
 
 static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 {
@@ -39,6 +54,27 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 	t["PetHP"] = peer.pet_hp();
 	t["MaxEndurance"] = peer.max_endurance();
 
+	// New top-level vitals
+	t["CurrentHP"] = peer.current_hp();
+	t["MaxHP"] = peer.max_hp();
+	t["CurrentMana"] = peer.current_mana();
+	t["MaxMana"] = peer.max_mana();
+	t["CurrentEndurance"] = peer.current_endurance();
+	t["PctEndurance"] = peer.pct_endurance();
+	t["PetID"] = peer.pet_id();
+	t["PetAffinity"] = peer.pet_affinity();
+	t["NoCure"] = static_cast<int64_t>(peer.no_cure());
+	t["LifeDrain"] = static_cast<int64_t>(peer.life_drain());
+	t["ManaDrain"] = static_cast<int64_t>(peer.mana_drain());
+	t["EnduDrain"] = static_cast<int64_t>(peer.endu_drain());
+	t["Version"] = peer.version();
+	t["CombatState"] = peer.combat_state();
+	t["CastingSpellID"] = peer.casting_spell_id();
+
+	// State[] and BuffState[] from bits
+	t["State"] = StringsToLuaTable(L, charinfo::StateBitsToStrings(peer.state_bits()));
+	t["BuffState"] = StringsToLuaTable(L, charinfo::BuffStateBitsToStrings(peer.detr_state_bits(), peer.bene_state_bits()));
+
 	sol::table classT = L.create_table();
 	classT["Name"] = peer.class_info().name();
 	classT["ShortName"] = peer.class_info().short_name();
@@ -54,6 +90,18 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 	zoneT["Name"] = peer.zone().name();
 	zoneT["ShortName"] = peer.zone().short_name();
 	zoneT["ID"] = peer.zone().id();
+	zoneT["InstanceID"] = peer.zone().instance_id();
+	zoneT["X"] = peer.zone().x();
+	zoneT["Y"] = peer.zone().y();
+	zoneT["Z"] = peer.zone().z();
+	zoneT["Heading"] = peer.zone().heading();
+	// Client-side Distance: only set when peer is in same zone as local player; nil otherwise.
+	if (pLocalPlayer && pLocalPC && pLocalPC->zoneId == peer.zone().id() && static_cast<uint16_t>(pLocalPC->instance) == static_cast<uint16_t>(peer.zone().instance_id())) {
+		float dist = Get3DDistance(pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z, peer.zone().x(), peer.zone().y(), peer.zone().z());
+		zoneT["Distance"] = static_cast<double>(dist);
+	} else {
+		zoneT["Distance"] = sol::lua_nil;
+	}
 	t["Zone"] = zoneT;
 
 	auto addBuffList = [&](int size, const auto &access)
@@ -84,6 +132,71 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 								 { return peer.short_buff(i); });
 	t["PetBuff"] = addBuffList(peer.pet_buff_size(), [&](int i) -> const BuffEntry &
 							   { return peer.pet_buff(i); });
+
+	// Gems: ordered array of spell tables (Gems[1].ID, Gems[1].Name, ...)
+	{
+		sol::table gemsArr = L.create_table();
+		PcProfile* profile = GetPcProfile();
+		for (int i = 0; i < peer.gem_size(); i++) {
+			int spellId = peer.gem(i);
+			sol::table sp = L.create_table();
+			sp["ID"] = spellId;
+			if (EQ_Spell* spell = GetSpellByID(spellId)) {
+				sp["Name"] = std::string(spell->Name[0] ? spell->Name : "");
+				sp["Category"] = spell->Category;
+				sp["Level"] = (profile ? static_cast<int>(spell->GetSpellLevelNeeded(profile->Class)) : 0);
+			} else {
+				sp["Name"] = "";
+				sp["Category"] = 0;
+				sp["Level"] = 0;
+			}
+			gemsArr[i + 1] = sp;
+		}
+		t["Gems"] = gemsArr;
+	}
+
+	// FreeInventory (ordered by size 0..4)
+	{
+		sol::table inv = L.create_table();
+		for (int i = 0; i < peer.free_inventory_size(); i++)
+			inv[i + 1] = peer.free_inventory(i);
+		t["FreeInventory"] = inv;
+	}
+
+	// Experience subtable
+	if (peer.has_experience()) {
+		const auto& ex = peer.experience();
+		sol::table expT = L.create_table();
+		expT["PctExp"] = ex.pct_exp();
+		expT["PctAAExp"] = ex.pct_aa_exp();
+		expT["PctGroupLeaderExp"] = ex.pct_group_leader_exp();
+		expT["TotalAA"] = ex.total_aa();
+		expT["AASpent"] = ex.aa_spent();
+		expT["AAUnused"] = ex.aa_unused();
+		expT["AAAssigned"] = ex.aa_assigned();
+		t["Experience"] = expT;
+	}
+
+	// MakeCamp subtable
+	if (peer.has_make_camp()) {
+		const auto& mc = peer.make_camp();
+		sol::table campT = L.create_table();
+		campT["Status"] = mc.status();
+		campT["X"] = mc.x();
+		campT["Y"] = mc.y();
+		campT["Radius"] = mc.radius();
+		campT["Distance"] = mc.distance();
+		t["MakeCamp"] = campT;
+	}
+
+	// Macro subtable
+	if (peer.has_macro()) {
+		const auto& mac = peer.macro();
+		sol::table macroT = L.create_table();
+		macroT["MacroState"] = mac.macro_state();
+		macroT["MacroName"] = mac.macro_name();
+		t["Macro"] = macroT;
+	}
 
 	return t;
 }

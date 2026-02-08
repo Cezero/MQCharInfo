@@ -35,6 +35,34 @@ message ZoneInfo {
   string name = 1;
   string short_name = 2;
   int32 id = 3;
+  int32 instance_id = 4;
+  float x = 5;
+  float y = 6;
+  float z = 7;
+  float heading = 8;
+}
+
+message ExperienceInfo {
+  float pct_exp = 1;
+  float pct_aa_exp = 2;
+  float pct_group_leader_exp = 3;
+  int32 total_aa = 4;
+  int32 aa_spent = 5;
+  int32 aa_unused = 6;
+  int32 aa_assigned = 7;
+}
+
+message MakeCampInfo {
+  int32 status = 1;
+  float x = 2;
+  float y = 3;
+  float radius = 4;
+  float distance = 5;
+}
+
+message MacroInfo {
+  int32 macro_state = 1;
+  string macro_name = 2;
 }
 
 message CharInfoPublish {
@@ -59,6 +87,39 @@ message CharInfoPublish {
   int32 count_corruption = 19;
   int32 pet_hp = 20;
   int32 max_endurance = 21;
+  // Vitals (top-level)
+  int32 current_hp = 22;
+  int32 max_hp = 23;
+  int32 current_mana = 24;
+  int32 max_mana = 25;
+  int32 current_endurance = 26;
+  int32 pct_endurance = 27;
+  // Pet (top-level)
+  int32 pet_id = 28;
+  bool pet_affinity = 29;
+  // Detrimentals / counters (top-level)
+  int64 no_cure = 30;
+  int64 life_drain = 31;
+  int64 mana_drain = 32;
+  int64 endu_drain = 33;
+  fixed32 state_bits = 34;
+  fixed32 detr_state_bits = 35;
+  fixed32 bene_state_bits = 36;
+  // State / combat
+  int32 casting_spell_id = 37;
+  int32 combat_state = 38;
+  // Gems (ordered spell IDs)
+  repeated int32 gem = 39;
+  // Version
+  float version = 40;
+  // Experience submessage
+  ExperienceInfo experience = 41;
+  // MakeCamp submessage (only when MQ2MoveUtils loaded)
+  MakeCampInfo make_camp = 42;
+  // Macro submessage
+  MacroInfo macro = 43;
+  // Free inventory by size (e.g. 5 elements for sizes 0-4)
+  repeated int32 free_inventory = 44;
 }
 
 message CharInfoRemove {

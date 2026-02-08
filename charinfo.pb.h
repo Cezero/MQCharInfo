@@ -63,6 +63,15 @@ extern CharInfoRemoveDefaultTypeInternal _CharInfoRemove_default_instance_;
 class ClassInfo;
 struct ClassInfoDefaultTypeInternal;
 extern ClassInfoDefaultTypeInternal _ClassInfo_default_instance_;
+class ExperienceInfo;
+struct ExperienceInfoDefaultTypeInternal;
+extern ExperienceInfoDefaultTypeInternal _ExperienceInfo_default_instance_;
+class MacroInfo;
+struct MacroInfoDefaultTypeInternal;
+extern MacroInfoDefaultTypeInternal _MacroInfo_default_instance_;
+class MakeCampInfo;
+struct MakeCampInfoDefaultTypeInternal;
+extern MakeCampInfoDefaultTypeInternal _MakeCampInfo_default_instance_;
 class SpellInfo;
 struct SpellInfoDefaultTypeInternal;
 extern SpellInfoDefaultTypeInternal _SpellInfo_default_instance_;
@@ -81,6 +90,9 @@ template<> ::mq::proto::charinfo::CharInfoMessage* Arena::CreateMaybeMessage<::m
 template<> ::mq::proto::charinfo::CharInfoPublish* Arena::CreateMaybeMessage<::mq::proto::charinfo::CharInfoPublish>(Arena*);
 template<> ::mq::proto::charinfo::CharInfoRemove* Arena::CreateMaybeMessage<::mq::proto::charinfo::CharInfoRemove>(Arena*);
 template<> ::mq::proto::charinfo::ClassInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::ClassInfo>(Arena*);
+template<> ::mq::proto::charinfo::ExperienceInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::ExperienceInfo>(Arena*);
+template<> ::mq::proto::charinfo::MacroInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::MacroInfo>(Arena*);
+template<> ::mq::proto::charinfo::MakeCampInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::MakeCampInfo>(Arena*);
 template<> ::mq::proto::charinfo::SpellInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::SpellInfo>(Arena*);
 template<> ::mq::proto::charinfo::TargetInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::TargetInfo>(Arena*);
 template<> ::mq::proto::charinfo::ZoneInfo* Arena::CreateMaybeMessage<::mq::proto::charinfo::ZoneInfo>(Arena*);
@@ -939,6 +951,11 @@ class ZoneInfo final :
     kNameFieldNumber = 1,
     kShortNameFieldNumber = 2,
     kIdFieldNumber = 3,
+    kInstanceIdFieldNumber = 4,
+    kXFieldNumber = 5,
+    kYFieldNumber = 6,
+    kZFieldNumber = 7,
+    kHeadingFieldNumber = 8,
   };
   // string name = 1;
   void clear_name();
@@ -977,6 +994,51 @@ class ZoneInfo final :
   void _internal_set_id(int32_t value);
   public:
 
+  // int32 instance_id = 4;
+  void clear_instance_id();
+  int32_t instance_id() const;
+  void set_instance_id(int32_t value);
+  private:
+  int32_t _internal_instance_id() const;
+  void _internal_set_instance_id(int32_t value);
+  public:
+
+  // float x = 5;
+  void clear_x();
+  float x() const;
+  void set_x(float value);
+  private:
+  float _internal_x() const;
+  void _internal_set_x(float value);
+  public:
+
+  // float y = 6;
+  void clear_y();
+  float y() const;
+  void set_y(float value);
+  private:
+  float _internal_y() const;
+  void _internal_set_y(float value);
+  public:
+
+  // float z = 7;
+  void clear_z();
+  float z() const;
+  void set_z(float value);
+  private:
+  float _internal_z() const;
+  void _internal_set_z(float value);
+  public:
+
+  // float heading = 8;
+  void clear_heading();
+  float heading() const;
+  void set_heading(float value);
+  private:
+  float _internal_heading() const;
+  void _internal_set_heading(float value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mq.proto.charinfo.ZoneInfo)
  private:
   class _Internal;
@@ -988,6 +1050,581 @@ class ZoneInfo final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr short_name_;
     int32_t id_;
+    int32_t instance_id_;
+    float x_;
+    float y_;
+    float z_;
+    float heading_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_charinfo_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ExperienceInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mq.proto.charinfo.ExperienceInfo) */ {
+ public:
+  inline ExperienceInfo() : ExperienceInfo(nullptr) {}
+  ~ExperienceInfo() override;
+  explicit PROTOBUF_CONSTEXPR ExperienceInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ExperienceInfo(const ExperienceInfo& from);
+  ExperienceInfo(ExperienceInfo&& from) noexcept
+    : ExperienceInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ExperienceInfo& operator=(const ExperienceInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ExperienceInfo& operator=(ExperienceInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ExperienceInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ExperienceInfo* internal_default_instance() {
+    return reinterpret_cast<const ExperienceInfo*>(
+               &_ExperienceInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(ExperienceInfo& a, ExperienceInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ExperienceInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ExperienceInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ExperienceInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ExperienceInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ExperienceInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ExperienceInfo& from) {
+    ExperienceInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ExperienceInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mq.proto.charinfo.ExperienceInfo";
+  }
+  protected:
+  explicit ExperienceInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPctExpFieldNumber = 1,
+    kPctAaExpFieldNumber = 2,
+    kPctGroupLeaderExpFieldNumber = 3,
+    kTotalAaFieldNumber = 4,
+    kAaSpentFieldNumber = 5,
+    kAaUnusedFieldNumber = 6,
+    kAaAssignedFieldNumber = 7,
+  };
+  // float pct_exp = 1;
+  void clear_pct_exp();
+  float pct_exp() const;
+  void set_pct_exp(float value);
+  private:
+  float _internal_pct_exp() const;
+  void _internal_set_pct_exp(float value);
+  public:
+
+  // float pct_aa_exp = 2;
+  void clear_pct_aa_exp();
+  float pct_aa_exp() const;
+  void set_pct_aa_exp(float value);
+  private:
+  float _internal_pct_aa_exp() const;
+  void _internal_set_pct_aa_exp(float value);
+  public:
+
+  // float pct_group_leader_exp = 3;
+  void clear_pct_group_leader_exp();
+  float pct_group_leader_exp() const;
+  void set_pct_group_leader_exp(float value);
+  private:
+  float _internal_pct_group_leader_exp() const;
+  void _internal_set_pct_group_leader_exp(float value);
+  public:
+
+  // int32 total_aa = 4;
+  void clear_total_aa();
+  int32_t total_aa() const;
+  void set_total_aa(int32_t value);
+  private:
+  int32_t _internal_total_aa() const;
+  void _internal_set_total_aa(int32_t value);
+  public:
+
+  // int32 aa_spent = 5;
+  void clear_aa_spent();
+  int32_t aa_spent() const;
+  void set_aa_spent(int32_t value);
+  private:
+  int32_t _internal_aa_spent() const;
+  void _internal_set_aa_spent(int32_t value);
+  public:
+
+  // int32 aa_unused = 6;
+  void clear_aa_unused();
+  int32_t aa_unused() const;
+  void set_aa_unused(int32_t value);
+  private:
+  int32_t _internal_aa_unused() const;
+  void _internal_set_aa_unused(int32_t value);
+  public:
+
+  // int32 aa_assigned = 7;
+  void clear_aa_assigned();
+  int32_t aa_assigned() const;
+  void set_aa_assigned(int32_t value);
+  private:
+  int32_t _internal_aa_assigned() const;
+  void _internal_set_aa_assigned(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:mq.proto.charinfo.ExperienceInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    float pct_exp_;
+    float pct_aa_exp_;
+    float pct_group_leader_exp_;
+    int32_t total_aa_;
+    int32_t aa_spent_;
+    int32_t aa_unused_;
+    int32_t aa_assigned_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_charinfo_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MakeCampInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mq.proto.charinfo.MakeCampInfo) */ {
+ public:
+  inline MakeCampInfo() : MakeCampInfo(nullptr) {}
+  ~MakeCampInfo() override;
+  explicit PROTOBUF_CONSTEXPR MakeCampInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  MakeCampInfo(const MakeCampInfo& from);
+  MakeCampInfo(MakeCampInfo&& from) noexcept
+    : MakeCampInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline MakeCampInfo& operator=(const MakeCampInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MakeCampInfo& operator=(MakeCampInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MakeCampInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const MakeCampInfo* internal_default_instance() {
+    return reinterpret_cast<const MakeCampInfo*>(
+               &_MakeCampInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(MakeCampInfo& a, MakeCampInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(MakeCampInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MakeCampInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MakeCampInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MakeCampInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const MakeCampInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const MakeCampInfo& from) {
+    MakeCampInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MakeCampInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mq.proto.charinfo.MakeCampInfo";
+  }
+  protected:
+  explicit MakeCampInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStatusFieldNumber = 1,
+    kXFieldNumber = 2,
+    kYFieldNumber = 3,
+    kRadiusFieldNumber = 4,
+    kDistanceFieldNumber = 5,
+  };
+  // int32 status = 1;
+  void clear_status();
+  int32_t status() const;
+  void set_status(int32_t value);
+  private:
+  int32_t _internal_status() const;
+  void _internal_set_status(int32_t value);
+  public:
+
+  // float x = 2;
+  void clear_x();
+  float x() const;
+  void set_x(float value);
+  private:
+  float _internal_x() const;
+  void _internal_set_x(float value);
+  public:
+
+  // float y = 3;
+  void clear_y();
+  float y() const;
+  void set_y(float value);
+  private:
+  float _internal_y() const;
+  void _internal_set_y(float value);
+  public:
+
+  // float radius = 4;
+  void clear_radius();
+  float radius() const;
+  void set_radius(float value);
+  private:
+  float _internal_radius() const;
+  void _internal_set_radius(float value);
+  public:
+
+  // float distance = 5;
+  void clear_distance();
+  float distance() const;
+  void set_distance(float value);
+  private:
+  float _internal_distance() const;
+  void _internal_set_distance(float value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:mq.proto.charinfo.MakeCampInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t status_;
+    float x_;
+    float y_;
+    float radius_;
+    float distance_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_charinfo_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MacroInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mq.proto.charinfo.MacroInfo) */ {
+ public:
+  inline MacroInfo() : MacroInfo(nullptr) {}
+  ~MacroInfo() override;
+  explicit PROTOBUF_CONSTEXPR MacroInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  MacroInfo(const MacroInfo& from);
+  MacroInfo(MacroInfo&& from) noexcept
+    : MacroInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline MacroInfo& operator=(const MacroInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MacroInfo& operator=(MacroInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MacroInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const MacroInfo* internal_default_instance() {
+    return reinterpret_cast<const MacroInfo*>(
+               &_MacroInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(MacroInfo& a, MacroInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(MacroInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MacroInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MacroInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MacroInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const MacroInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const MacroInfo& from) {
+    MacroInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MacroInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mq.proto.charinfo.MacroInfo";
+  }
+  protected:
+  explicit MacroInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMacroNameFieldNumber = 2,
+    kMacroStateFieldNumber = 1,
+  };
+  // string macro_name = 2;
+  void clear_macro_name();
+  const std::string& macro_name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_macro_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_macro_name();
+  PROTOBUF_NODISCARD std::string* release_macro_name();
+  void set_allocated_macro_name(std::string* macro_name);
+  private:
+  const std::string& _internal_macro_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_macro_name(const std::string& value);
+  std::string* _internal_mutable_macro_name();
+  public:
+
+  // int32 macro_state = 1;
+  void clear_macro_state();
+  int32_t macro_state() const;
+  void set_macro_state(int32_t value);
+  private:
+  int32_t _internal_macro_state() const;
+  void _internal_set_macro_state(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:mq.proto.charinfo.MacroInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr macro_name_;
+    int32_t macro_state_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1043,7 +1680,7 @@ class CharInfoPublish final :
                &_CharInfoPublish_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    8;
 
   friend void swap(CharInfoPublish& a, CharInfoPublish& b) {
     a.Swap(&b);
@@ -1119,11 +1756,16 @@ class CharInfoPublish final :
     kBuffFieldNumber = 11,
     kShortBuffFieldNumber = 12,
     kPetBuffFieldNumber = 13,
+    kGemFieldNumber = 39,
+    kFreeInventoryFieldNumber = 44,
     kSenderFieldNumber = 1,
     kNameFieldNumber = 2,
     kClassInfoFieldNumber = 5,
     kTargetFieldNumber = 8,
     kZoneFieldNumber = 10,
+    kExperienceFieldNumber = 41,
+    kMakeCampFieldNumber = 42,
+    kMacroFieldNumber = 43,
     kIdFieldNumber = 3,
     kLevelFieldNumber = 4,
     kPctHpsFieldNumber = 6,
@@ -1137,6 +1779,24 @@ class CharInfoPublish final :
     kCountCorruptionFieldNumber = 19,
     kPetHpFieldNumber = 20,
     kMaxEnduranceFieldNumber = 21,
+    kCurrentHpFieldNumber = 22,
+    kMaxHpFieldNumber = 23,
+    kCurrentManaFieldNumber = 24,
+    kMaxManaFieldNumber = 25,
+    kCurrentEnduranceFieldNumber = 26,
+    kPctEnduranceFieldNumber = 27,
+    kPetIdFieldNumber = 28,
+    kNoCureFieldNumber = 30,
+    kLifeDrainFieldNumber = 31,
+    kPetAffinityFieldNumber = 29,
+    kStateBitsFieldNumber = 34,
+    kManaDrainFieldNumber = 32,
+    kEnduDrainFieldNumber = 33,
+    kDetrStateBitsFieldNumber = 35,
+    kBeneStateBitsFieldNumber = 36,
+    kCastingSpellIdFieldNumber = 37,
+    kCombatStateFieldNumber = 38,
+    kVersionFieldNumber = 40,
   };
   // repeated .mq.proto.charinfo.BuffEntry buff = 11;
   int buff_size() const;
@@ -1191,6 +1851,50 @@ class CharInfoPublish final :
   ::mq::proto::charinfo::BuffEntry* add_pet_buff();
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::mq::proto::charinfo::BuffEntry >&
       pet_buff() const;
+
+  // repeated int32 gem = 39;
+  int gem_size() const;
+  private:
+  int _internal_gem_size() const;
+  public:
+  void clear_gem();
+  private:
+  int32_t _internal_gem(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_gem() const;
+  void _internal_add_gem(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_gem();
+  public:
+  int32_t gem(int index) const;
+  void set_gem(int index, int32_t value);
+  void add_gem(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      gem() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_gem();
+
+  // repeated int32 free_inventory = 44;
+  int free_inventory_size() const;
+  private:
+  int _internal_free_inventory_size() const;
+  public:
+  void clear_free_inventory();
+  private:
+  int32_t _internal_free_inventory(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_free_inventory() const;
+  void _internal_add_free_inventory(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_free_inventory();
+  public:
+  int32_t free_inventory(int index) const;
+  void set_free_inventory(int index, int32_t value);
+  void add_free_inventory(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      free_inventory() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_free_inventory();
 
   // string sender = 1;
   void clear_sender();
@@ -1273,6 +1977,60 @@ class CharInfoPublish final :
   void unsafe_arena_set_allocated_zone(
       ::mq::proto::charinfo::ZoneInfo* zone);
   ::mq::proto::charinfo::ZoneInfo* unsafe_arena_release_zone();
+
+  // .mq.proto.charinfo.ExperienceInfo experience = 41;
+  bool has_experience() const;
+  private:
+  bool _internal_has_experience() const;
+  public:
+  void clear_experience();
+  const ::mq::proto::charinfo::ExperienceInfo& experience() const;
+  PROTOBUF_NODISCARD ::mq::proto::charinfo::ExperienceInfo* release_experience();
+  ::mq::proto::charinfo::ExperienceInfo* mutable_experience();
+  void set_allocated_experience(::mq::proto::charinfo::ExperienceInfo* experience);
+  private:
+  const ::mq::proto::charinfo::ExperienceInfo& _internal_experience() const;
+  ::mq::proto::charinfo::ExperienceInfo* _internal_mutable_experience();
+  public:
+  void unsafe_arena_set_allocated_experience(
+      ::mq::proto::charinfo::ExperienceInfo* experience);
+  ::mq::proto::charinfo::ExperienceInfo* unsafe_arena_release_experience();
+
+  // .mq.proto.charinfo.MakeCampInfo make_camp = 42;
+  bool has_make_camp() const;
+  private:
+  bool _internal_has_make_camp() const;
+  public:
+  void clear_make_camp();
+  const ::mq::proto::charinfo::MakeCampInfo& make_camp() const;
+  PROTOBUF_NODISCARD ::mq::proto::charinfo::MakeCampInfo* release_make_camp();
+  ::mq::proto::charinfo::MakeCampInfo* mutable_make_camp();
+  void set_allocated_make_camp(::mq::proto::charinfo::MakeCampInfo* make_camp);
+  private:
+  const ::mq::proto::charinfo::MakeCampInfo& _internal_make_camp() const;
+  ::mq::proto::charinfo::MakeCampInfo* _internal_mutable_make_camp();
+  public:
+  void unsafe_arena_set_allocated_make_camp(
+      ::mq::proto::charinfo::MakeCampInfo* make_camp);
+  ::mq::proto::charinfo::MakeCampInfo* unsafe_arena_release_make_camp();
+
+  // .mq.proto.charinfo.MacroInfo macro = 43;
+  bool has_macro() const;
+  private:
+  bool _internal_has_macro() const;
+  public:
+  void clear_macro();
+  const ::mq::proto::charinfo::MacroInfo& macro() const;
+  PROTOBUF_NODISCARD ::mq::proto::charinfo::MacroInfo* release_macro();
+  ::mq::proto::charinfo::MacroInfo* mutable_macro();
+  void set_allocated_macro(::mq::proto::charinfo::MacroInfo* macro);
+  private:
+  const ::mq::proto::charinfo::MacroInfo& _internal_macro() const;
+  ::mq::proto::charinfo::MacroInfo* _internal_mutable_macro();
+  public:
+  void unsafe_arena_set_allocated_macro(
+      ::mq::proto::charinfo::MacroInfo* macro);
+  ::mq::proto::charinfo::MacroInfo* unsafe_arena_release_macro();
 
   // int32 id = 3;
   void clear_id();
@@ -1391,6 +2149,168 @@ class CharInfoPublish final :
   void _internal_set_max_endurance(int32_t value);
   public:
 
+  // int32 current_hp = 22;
+  void clear_current_hp();
+  int32_t current_hp() const;
+  void set_current_hp(int32_t value);
+  private:
+  int32_t _internal_current_hp() const;
+  void _internal_set_current_hp(int32_t value);
+  public:
+
+  // int32 max_hp = 23;
+  void clear_max_hp();
+  int32_t max_hp() const;
+  void set_max_hp(int32_t value);
+  private:
+  int32_t _internal_max_hp() const;
+  void _internal_set_max_hp(int32_t value);
+  public:
+
+  // int32 current_mana = 24;
+  void clear_current_mana();
+  int32_t current_mana() const;
+  void set_current_mana(int32_t value);
+  private:
+  int32_t _internal_current_mana() const;
+  void _internal_set_current_mana(int32_t value);
+  public:
+
+  // int32 max_mana = 25;
+  void clear_max_mana();
+  int32_t max_mana() const;
+  void set_max_mana(int32_t value);
+  private:
+  int32_t _internal_max_mana() const;
+  void _internal_set_max_mana(int32_t value);
+  public:
+
+  // int32 current_endurance = 26;
+  void clear_current_endurance();
+  int32_t current_endurance() const;
+  void set_current_endurance(int32_t value);
+  private:
+  int32_t _internal_current_endurance() const;
+  void _internal_set_current_endurance(int32_t value);
+  public:
+
+  // int32 pct_endurance = 27;
+  void clear_pct_endurance();
+  int32_t pct_endurance() const;
+  void set_pct_endurance(int32_t value);
+  private:
+  int32_t _internal_pct_endurance() const;
+  void _internal_set_pct_endurance(int32_t value);
+  public:
+
+  // int32 pet_id = 28;
+  void clear_pet_id();
+  int32_t pet_id() const;
+  void set_pet_id(int32_t value);
+  private:
+  int32_t _internal_pet_id() const;
+  void _internal_set_pet_id(int32_t value);
+  public:
+
+  // int64 no_cure = 30;
+  void clear_no_cure();
+  int64_t no_cure() const;
+  void set_no_cure(int64_t value);
+  private:
+  int64_t _internal_no_cure() const;
+  void _internal_set_no_cure(int64_t value);
+  public:
+
+  // int64 life_drain = 31;
+  void clear_life_drain();
+  int64_t life_drain() const;
+  void set_life_drain(int64_t value);
+  private:
+  int64_t _internal_life_drain() const;
+  void _internal_set_life_drain(int64_t value);
+  public:
+
+  // bool pet_affinity = 29;
+  void clear_pet_affinity();
+  bool pet_affinity() const;
+  void set_pet_affinity(bool value);
+  private:
+  bool _internal_pet_affinity() const;
+  void _internal_set_pet_affinity(bool value);
+  public:
+
+  // fixed32 state_bits = 34;
+  void clear_state_bits();
+  uint32_t state_bits() const;
+  void set_state_bits(uint32_t value);
+  private:
+  uint32_t _internal_state_bits() const;
+  void _internal_set_state_bits(uint32_t value);
+  public:
+
+  // int64 mana_drain = 32;
+  void clear_mana_drain();
+  int64_t mana_drain() const;
+  void set_mana_drain(int64_t value);
+  private:
+  int64_t _internal_mana_drain() const;
+  void _internal_set_mana_drain(int64_t value);
+  public:
+
+  // int64 endu_drain = 33;
+  void clear_endu_drain();
+  int64_t endu_drain() const;
+  void set_endu_drain(int64_t value);
+  private:
+  int64_t _internal_endu_drain() const;
+  void _internal_set_endu_drain(int64_t value);
+  public:
+
+  // fixed32 detr_state_bits = 35;
+  void clear_detr_state_bits();
+  uint32_t detr_state_bits() const;
+  void set_detr_state_bits(uint32_t value);
+  private:
+  uint32_t _internal_detr_state_bits() const;
+  void _internal_set_detr_state_bits(uint32_t value);
+  public:
+
+  // fixed32 bene_state_bits = 36;
+  void clear_bene_state_bits();
+  uint32_t bene_state_bits() const;
+  void set_bene_state_bits(uint32_t value);
+  private:
+  uint32_t _internal_bene_state_bits() const;
+  void _internal_set_bene_state_bits(uint32_t value);
+  public:
+
+  // int32 casting_spell_id = 37;
+  void clear_casting_spell_id();
+  int32_t casting_spell_id() const;
+  void set_casting_spell_id(int32_t value);
+  private:
+  int32_t _internal_casting_spell_id() const;
+  void _internal_set_casting_spell_id(int32_t value);
+  public:
+
+  // int32 combat_state = 38;
+  void clear_combat_state();
+  int32_t combat_state() const;
+  void set_combat_state(int32_t value);
+  private:
+  int32_t _internal_combat_state() const;
+  void _internal_set_combat_state(int32_t value);
+  public:
+
+  // float version = 40;
+  void clear_version();
+  float version() const;
+  void set_version(float value);
+  private:
+  float _internal_version() const;
+  void _internal_set_version(float value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mq.proto.charinfo.CharInfoPublish)
  private:
   class _Internal;
@@ -1402,11 +2322,18 @@ class CharInfoPublish final :
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::mq::proto::charinfo::BuffEntry > buff_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::mq::proto::charinfo::BuffEntry > short_buff_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::mq::proto::charinfo::BuffEntry > pet_buff_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > gem_;
+    mutable std::atomic<int> _gem_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > free_inventory_;
+    mutable std::atomic<int> _free_inventory_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr sender_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
     ::mq::proto::charinfo::ClassInfo* class_info_;
     ::mq::proto::charinfo::TargetInfo* target_;
     ::mq::proto::charinfo::ZoneInfo* zone_;
+    ::mq::proto::charinfo::ExperienceInfo* experience_;
+    ::mq::proto::charinfo::MakeCampInfo* make_camp_;
+    ::mq::proto::charinfo::MacroInfo* macro_;
     int32_t id_;
     int32_t level_;
     int32_t pct_hps_;
@@ -1420,6 +2347,24 @@ class CharInfoPublish final :
     int32_t count_corruption_;
     int32_t pet_hp_;
     int32_t max_endurance_;
+    int32_t current_hp_;
+    int32_t max_hp_;
+    int32_t current_mana_;
+    int32_t max_mana_;
+    int32_t current_endurance_;
+    int32_t pct_endurance_;
+    int32_t pet_id_;
+    int64_t no_cure_;
+    int64_t life_drain_;
+    bool pet_affinity_;
+    uint32_t state_bits_;
+    int64_t mana_drain_;
+    int64_t endu_drain_;
+    uint32_t detr_state_bits_;
+    uint32_t bene_state_bits_;
+    int32_t casting_spell_id_;
+    int32_t combat_state_;
+    float version_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1475,7 +2420,7 @@ class CharInfoRemove final :
                &_CharInfoRemove_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    9;
 
   friend void swap(CharInfoRemove& a, CharInfoRemove& b) {
     a.Swap(&b);
@@ -1628,7 +2573,7 @@ class CharInfoMessage final :
                &_CharInfoMessage_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    10;
 
   friend void swap(CharInfoMessage& a, CharInfoMessage& b) {
     a.Swap(&b);
@@ -2321,6 +3266,428 @@ inline void ZoneInfo::_internal_set_id(int32_t value) {
 inline void ZoneInfo::set_id(int32_t value) {
   _internal_set_id(value);
   // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.id)
+}
+
+// int32 instance_id = 4;
+inline void ZoneInfo::clear_instance_id() {
+  _impl_.instance_id_ = 0;
+}
+inline int32_t ZoneInfo::_internal_instance_id() const {
+  return _impl_.instance_id_;
+}
+inline int32_t ZoneInfo::instance_id() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ZoneInfo.instance_id)
+  return _internal_instance_id();
+}
+inline void ZoneInfo::_internal_set_instance_id(int32_t value) {
+  
+  _impl_.instance_id_ = value;
+}
+inline void ZoneInfo::set_instance_id(int32_t value) {
+  _internal_set_instance_id(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.instance_id)
+}
+
+// float x = 5;
+inline void ZoneInfo::clear_x() {
+  _impl_.x_ = 0;
+}
+inline float ZoneInfo::_internal_x() const {
+  return _impl_.x_;
+}
+inline float ZoneInfo::x() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ZoneInfo.x)
+  return _internal_x();
+}
+inline void ZoneInfo::_internal_set_x(float value) {
+  
+  _impl_.x_ = value;
+}
+inline void ZoneInfo::set_x(float value) {
+  _internal_set_x(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.x)
+}
+
+// float y = 6;
+inline void ZoneInfo::clear_y() {
+  _impl_.y_ = 0;
+}
+inline float ZoneInfo::_internal_y() const {
+  return _impl_.y_;
+}
+inline float ZoneInfo::y() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ZoneInfo.y)
+  return _internal_y();
+}
+inline void ZoneInfo::_internal_set_y(float value) {
+  
+  _impl_.y_ = value;
+}
+inline void ZoneInfo::set_y(float value) {
+  _internal_set_y(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.y)
+}
+
+// float z = 7;
+inline void ZoneInfo::clear_z() {
+  _impl_.z_ = 0;
+}
+inline float ZoneInfo::_internal_z() const {
+  return _impl_.z_;
+}
+inline float ZoneInfo::z() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ZoneInfo.z)
+  return _internal_z();
+}
+inline void ZoneInfo::_internal_set_z(float value) {
+  
+  _impl_.z_ = value;
+}
+inline void ZoneInfo::set_z(float value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.z)
+}
+
+// float heading = 8;
+inline void ZoneInfo::clear_heading() {
+  _impl_.heading_ = 0;
+}
+inline float ZoneInfo::_internal_heading() const {
+  return _impl_.heading_;
+}
+inline float ZoneInfo::heading() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ZoneInfo.heading)
+  return _internal_heading();
+}
+inline void ZoneInfo::_internal_set_heading(float value) {
+  
+  _impl_.heading_ = value;
+}
+inline void ZoneInfo::set_heading(float value) {
+  _internal_set_heading(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ZoneInfo.heading)
+}
+
+// -------------------------------------------------------------------
+
+// ExperienceInfo
+
+// float pct_exp = 1;
+inline void ExperienceInfo::clear_pct_exp() {
+  _impl_.pct_exp_ = 0;
+}
+inline float ExperienceInfo::_internal_pct_exp() const {
+  return _impl_.pct_exp_;
+}
+inline float ExperienceInfo::pct_exp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.pct_exp)
+  return _internal_pct_exp();
+}
+inline void ExperienceInfo::_internal_set_pct_exp(float value) {
+  
+  _impl_.pct_exp_ = value;
+}
+inline void ExperienceInfo::set_pct_exp(float value) {
+  _internal_set_pct_exp(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.pct_exp)
+}
+
+// float pct_aa_exp = 2;
+inline void ExperienceInfo::clear_pct_aa_exp() {
+  _impl_.pct_aa_exp_ = 0;
+}
+inline float ExperienceInfo::_internal_pct_aa_exp() const {
+  return _impl_.pct_aa_exp_;
+}
+inline float ExperienceInfo::pct_aa_exp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.pct_aa_exp)
+  return _internal_pct_aa_exp();
+}
+inline void ExperienceInfo::_internal_set_pct_aa_exp(float value) {
+  
+  _impl_.pct_aa_exp_ = value;
+}
+inline void ExperienceInfo::set_pct_aa_exp(float value) {
+  _internal_set_pct_aa_exp(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.pct_aa_exp)
+}
+
+// float pct_group_leader_exp = 3;
+inline void ExperienceInfo::clear_pct_group_leader_exp() {
+  _impl_.pct_group_leader_exp_ = 0;
+}
+inline float ExperienceInfo::_internal_pct_group_leader_exp() const {
+  return _impl_.pct_group_leader_exp_;
+}
+inline float ExperienceInfo::pct_group_leader_exp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.pct_group_leader_exp)
+  return _internal_pct_group_leader_exp();
+}
+inline void ExperienceInfo::_internal_set_pct_group_leader_exp(float value) {
+  
+  _impl_.pct_group_leader_exp_ = value;
+}
+inline void ExperienceInfo::set_pct_group_leader_exp(float value) {
+  _internal_set_pct_group_leader_exp(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.pct_group_leader_exp)
+}
+
+// int32 total_aa = 4;
+inline void ExperienceInfo::clear_total_aa() {
+  _impl_.total_aa_ = 0;
+}
+inline int32_t ExperienceInfo::_internal_total_aa() const {
+  return _impl_.total_aa_;
+}
+inline int32_t ExperienceInfo::total_aa() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.total_aa)
+  return _internal_total_aa();
+}
+inline void ExperienceInfo::_internal_set_total_aa(int32_t value) {
+  
+  _impl_.total_aa_ = value;
+}
+inline void ExperienceInfo::set_total_aa(int32_t value) {
+  _internal_set_total_aa(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.total_aa)
+}
+
+// int32 aa_spent = 5;
+inline void ExperienceInfo::clear_aa_spent() {
+  _impl_.aa_spent_ = 0;
+}
+inline int32_t ExperienceInfo::_internal_aa_spent() const {
+  return _impl_.aa_spent_;
+}
+inline int32_t ExperienceInfo::aa_spent() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.aa_spent)
+  return _internal_aa_spent();
+}
+inline void ExperienceInfo::_internal_set_aa_spent(int32_t value) {
+  
+  _impl_.aa_spent_ = value;
+}
+inline void ExperienceInfo::set_aa_spent(int32_t value) {
+  _internal_set_aa_spent(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.aa_spent)
+}
+
+// int32 aa_unused = 6;
+inline void ExperienceInfo::clear_aa_unused() {
+  _impl_.aa_unused_ = 0;
+}
+inline int32_t ExperienceInfo::_internal_aa_unused() const {
+  return _impl_.aa_unused_;
+}
+inline int32_t ExperienceInfo::aa_unused() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.aa_unused)
+  return _internal_aa_unused();
+}
+inline void ExperienceInfo::_internal_set_aa_unused(int32_t value) {
+  
+  _impl_.aa_unused_ = value;
+}
+inline void ExperienceInfo::set_aa_unused(int32_t value) {
+  _internal_set_aa_unused(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.aa_unused)
+}
+
+// int32 aa_assigned = 7;
+inline void ExperienceInfo::clear_aa_assigned() {
+  _impl_.aa_assigned_ = 0;
+}
+inline int32_t ExperienceInfo::_internal_aa_assigned() const {
+  return _impl_.aa_assigned_;
+}
+inline int32_t ExperienceInfo::aa_assigned() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.ExperienceInfo.aa_assigned)
+  return _internal_aa_assigned();
+}
+inline void ExperienceInfo::_internal_set_aa_assigned(int32_t value) {
+  
+  _impl_.aa_assigned_ = value;
+}
+inline void ExperienceInfo::set_aa_assigned(int32_t value) {
+  _internal_set_aa_assigned(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.ExperienceInfo.aa_assigned)
+}
+
+// -------------------------------------------------------------------
+
+// MakeCampInfo
+
+// int32 status = 1;
+inline void MakeCampInfo::clear_status() {
+  _impl_.status_ = 0;
+}
+inline int32_t MakeCampInfo::_internal_status() const {
+  return _impl_.status_;
+}
+inline int32_t MakeCampInfo::status() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MakeCampInfo.status)
+  return _internal_status();
+}
+inline void MakeCampInfo::_internal_set_status(int32_t value) {
+  
+  _impl_.status_ = value;
+}
+inline void MakeCampInfo::set_status(int32_t value) {
+  _internal_set_status(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MakeCampInfo.status)
+}
+
+// float x = 2;
+inline void MakeCampInfo::clear_x() {
+  _impl_.x_ = 0;
+}
+inline float MakeCampInfo::_internal_x() const {
+  return _impl_.x_;
+}
+inline float MakeCampInfo::x() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MakeCampInfo.x)
+  return _internal_x();
+}
+inline void MakeCampInfo::_internal_set_x(float value) {
+  
+  _impl_.x_ = value;
+}
+inline void MakeCampInfo::set_x(float value) {
+  _internal_set_x(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MakeCampInfo.x)
+}
+
+// float y = 3;
+inline void MakeCampInfo::clear_y() {
+  _impl_.y_ = 0;
+}
+inline float MakeCampInfo::_internal_y() const {
+  return _impl_.y_;
+}
+inline float MakeCampInfo::y() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MakeCampInfo.y)
+  return _internal_y();
+}
+inline void MakeCampInfo::_internal_set_y(float value) {
+  
+  _impl_.y_ = value;
+}
+inline void MakeCampInfo::set_y(float value) {
+  _internal_set_y(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MakeCampInfo.y)
+}
+
+// float radius = 4;
+inline void MakeCampInfo::clear_radius() {
+  _impl_.radius_ = 0;
+}
+inline float MakeCampInfo::_internal_radius() const {
+  return _impl_.radius_;
+}
+inline float MakeCampInfo::radius() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MakeCampInfo.radius)
+  return _internal_radius();
+}
+inline void MakeCampInfo::_internal_set_radius(float value) {
+  
+  _impl_.radius_ = value;
+}
+inline void MakeCampInfo::set_radius(float value) {
+  _internal_set_radius(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MakeCampInfo.radius)
+}
+
+// float distance = 5;
+inline void MakeCampInfo::clear_distance() {
+  _impl_.distance_ = 0;
+}
+inline float MakeCampInfo::_internal_distance() const {
+  return _impl_.distance_;
+}
+inline float MakeCampInfo::distance() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MakeCampInfo.distance)
+  return _internal_distance();
+}
+inline void MakeCampInfo::_internal_set_distance(float value) {
+  
+  _impl_.distance_ = value;
+}
+inline void MakeCampInfo::set_distance(float value) {
+  _internal_set_distance(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MakeCampInfo.distance)
+}
+
+// -------------------------------------------------------------------
+
+// MacroInfo
+
+// int32 macro_state = 1;
+inline void MacroInfo::clear_macro_state() {
+  _impl_.macro_state_ = 0;
+}
+inline int32_t MacroInfo::_internal_macro_state() const {
+  return _impl_.macro_state_;
+}
+inline int32_t MacroInfo::macro_state() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MacroInfo.macro_state)
+  return _internal_macro_state();
+}
+inline void MacroInfo::_internal_set_macro_state(int32_t value) {
+  
+  _impl_.macro_state_ = value;
+}
+inline void MacroInfo::set_macro_state(int32_t value) {
+  _internal_set_macro_state(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MacroInfo.macro_state)
+}
+
+// string macro_name = 2;
+inline void MacroInfo::clear_macro_name() {
+  _impl_.macro_name_.ClearToEmpty();
+}
+inline const std::string& MacroInfo::macro_name() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.MacroInfo.macro_name)
+  return _internal_macro_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void MacroInfo::set_macro_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.macro_name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.MacroInfo.macro_name)
+}
+inline std::string* MacroInfo::mutable_macro_name() {
+  std::string* _s = _internal_mutable_macro_name();
+  // @@protoc_insertion_point(field_mutable:mq.proto.charinfo.MacroInfo.macro_name)
+  return _s;
+}
+inline const std::string& MacroInfo::_internal_macro_name() const {
+  return _impl_.macro_name_.Get();
+}
+inline void MacroInfo::_internal_set_macro_name(const std::string& value) {
+  
+  _impl_.macro_name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* MacroInfo::_internal_mutable_macro_name() {
+  
+  return _impl_.macro_name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* MacroInfo::release_macro_name() {
+  // @@protoc_insertion_point(field_release:mq.proto.charinfo.MacroInfo.macro_name)
+  return _impl_.macro_name_.Release();
+}
+inline void MacroInfo::set_allocated_macro_name(std::string* macro_name) {
+  if (macro_name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.macro_name_.SetAllocated(macro_name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.macro_name_.IsDefault()) {
+    _impl_.macro_name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:mq.proto.charinfo.MacroInfo.macro_name)
 }
 
 // -------------------------------------------------------------------
@@ -3077,6 +4444,730 @@ inline void CharInfoPublish::set_max_endurance(int32_t value) {
   // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.max_endurance)
 }
 
+// int32 current_hp = 22;
+inline void CharInfoPublish::clear_current_hp() {
+  _impl_.current_hp_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_current_hp() const {
+  return _impl_.current_hp_;
+}
+inline int32_t CharInfoPublish::current_hp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.current_hp)
+  return _internal_current_hp();
+}
+inline void CharInfoPublish::_internal_set_current_hp(int32_t value) {
+  
+  _impl_.current_hp_ = value;
+}
+inline void CharInfoPublish::set_current_hp(int32_t value) {
+  _internal_set_current_hp(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.current_hp)
+}
+
+// int32 max_hp = 23;
+inline void CharInfoPublish::clear_max_hp() {
+  _impl_.max_hp_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_max_hp() const {
+  return _impl_.max_hp_;
+}
+inline int32_t CharInfoPublish::max_hp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.max_hp)
+  return _internal_max_hp();
+}
+inline void CharInfoPublish::_internal_set_max_hp(int32_t value) {
+  
+  _impl_.max_hp_ = value;
+}
+inline void CharInfoPublish::set_max_hp(int32_t value) {
+  _internal_set_max_hp(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.max_hp)
+}
+
+// int32 current_mana = 24;
+inline void CharInfoPublish::clear_current_mana() {
+  _impl_.current_mana_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_current_mana() const {
+  return _impl_.current_mana_;
+}
+inline int32_t CharInfoPublish::current_mana() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.current_mana)
+  return _internal_current_mana();
+}
+inline void CharInfoPublish::_internal_set_current_mana(int32_t value) {
+  
+  _impl_.current_mana_ = value;
+}
+inline void CharInfoPublish::set_current_mana(int32_t value) {
+  _internal_set_current_mana(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.current_mana)
+}
+
+// int32 max_mana = 25;
+inline void CharInfoPublish::clear_max_mana() {
+  _impl_.max_mana_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_max_mana() const {
+  return _impl_.max_mana_;
+}
+inline int32_t CharInfoPublish::max_mana() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.max_mana)
+  return _internal_max_mana();
+}
+inline void CharInfoPublish::_internal_set_max_mana(int32_t value) {
+  
+  _impl_.max_mana_ = value;
+}
+inline void CharInfoPublish::set_max_mana(int32_t value) {
+  _internal_set_max_mana(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.max_mana)
+}
+
+// int32 current_endurance = 26;
+inline void CharInfoPublish::clear_current_endurance() {
+  _impl_.current_endurance_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_current_endurance() const {
+  return _impl_.current_endurance_;
+}
+inline int32_t CharInfoPublish::current_endurance() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.current_endurance)
+  return _internal_current_endurance();
+}
+inline void CharInfoPublish::_internal_set_current_endurance(int32_t value) {
+  
+  _impl_.current_endurance_ = value;
+}
+inline void CharInfoPublish::set_current_endurance(int32_t value) {
+  _internal_set_current_endurance(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.current_endurance)
+}
+
+// int32 pct_endurance = 27;
+inline void CharInfoPublish::clear_pct_endurance() {
+  _impl_.pct_endurance_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_pct_endurance() const {
+  return _impl_.pct_endurance_;
+}
+inline int32_t CharInfoPublish::pct_endurance() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.pct_endurance)
+  return _internal_pct_endurance();
+}
+inline void CharInfoPublish::_internal_set_pct_endurance(int32_t value) {
+  
+  _impl_.pct_endurance_ = value;
+}
+inline void CharInfoPublish::set_pct_endurance(int32_t value) {
+  _internal_set_pct_endurance(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.pct_endurance)
+}
+
+// int32 pet_id = 28;
+inline void CharInfoPublish::clear_pet_id() {
+  _impl_.pet_id_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_pet_id() const {
+  return _impl_.pet_id_;
+}
+inline int32_t CharInfoPublish::pet_id() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.pet_id)
+  return _internal_pet_id();
+}
+inline void CharInfoPublish::_internal_set_pet_id(int32_t value) {
+  
+  _impl_.pet_id_ = value;
+}
+inline void CharInfoPublish::set_pet_id(int32_t value) {
+  _internal_set_pet_id(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.pet_id)
+}
+
+// bool pet_affinity = 29;
+inline void CharInfoPublish::clear_pet_affinity() {
+  _impl_.pet_affinity_ = false;
+}
+inline bool CharInfoPublish::_internal_pet_affinity() const {
+  return _impl_.pet_affinity_;
+}
+inline bool CharInfoPublish::pet_affinity() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.pet_affinity)
+  return _internal_pet_affinity();
+}
+inline void CharInfoPublish::_internal_set_pet_affinity(bool value) {
+  
+  _impl_.pet_affinity_ = value;
+}
+inline void CharInfoPublish::set_pet_affinity(bool value) {
+  _internal_set_pet_affinity(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.pet_affinity)
+}
+
+// int64 no_cure = 30;
+inline void CharInfoPublish::clear_no_cure() {
+  _impl_.no_cure_ = int64_t{0};
+}
+inline int64_t CharInfoPublish::_internal_no_cure() const {
+  return _impl_.no_cure_;
+}
+inline int64_t CharInfoPublish::no_cure() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.no_cure)
+  return _internal_no_cure();
+}
+inline void CharInfoPublish::_internal_set_no_cure(int64_t value) {
+  
+  _impl_.no_cure_ = value;
+}
+inline void CharInfoPublish::set_no_cure(int64_t value) {
+  _internal_set_no_cure(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.no_cure)
+}
+
+// int64 life_drain = 31;
+inline void CharInfoPublish::clear_life_drain() {
+  _impl_.life_drain_ = int64_t{0};
+}
+inline int64_t CharInfoPublish::_internal_life_drain() const {
+  return _impl_.life_drain_;
+}
+inline int64_t CharInfoPublish::life_drain() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.life_drain)
+  return _internal_life_drain();
+}
+inline void CharInfoPublish::_internal_set_life_drain(int64_t value) {
+  
+  _impl_.life_drain_ = value;
+}
+inline void CharInfoPublish::set_life_drain(int64_t value) {
+  _internal_set_life_drain(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.life_drain)
+}
+
+// int64 mana_drain = 32;
+inline void CharInfoPublish::clear_mana_drain() {
+  _impl_.mana_drain_ = int64_t{0};
+}
+inline int64_t CharInfoPublish::_internal_mana_drain() const {
+  return _impl_.mana_drain_;
+}
+inline int64_t CharInfoPublish::mana_drain() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.mana_drain)
+  return _internal_mana_drain();
+}
+inline void CharInfoPublish::_internal_set_mana_drain(int64_t value) {
+  
+  _impl_.mana_drain_ = value;
+}
+inline void CharInfoPublish::set_mana_drain(int64_t value) {
+  _internal_set_mana_drain(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.mana_drain)
+}
+
+// int64 endu_drain = 33;
+inline void CharInfoPublish::clear_endu_drain() {
+  _impl_.endu_drain_ = int64_t{0};
+}
+inline int64_t CharInfoPublish::_internal_endu_drain() const {
+  return _impl_.endu_drain_;
+}
+inline int64_t CharInfoPublish::endu_drain() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.endu_drain)
+  return _internal_endu_drain();
+}
+inline void CharInfoPublish::_internal_set_endu_drain(int64_t value) {
+  
+  _impl_.endu_drain_ = value;
+}
+inline void CharInfoPublish::set_endu_drain(int64_t value) {
+  _internal_set_endu_drain(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.endu_drain)
+}
+
+// fixed32 state_bits = 34;
+inline void CharInfoPublish::clear_state_bits() {
+  _impl_.state_bits_ = 0u;
+}
+inline uint32_t CharInfoPublish::_internal_state_bits() const {
+  return _impl_.state_bits_;
+}
+inline uint32_t CharInfoPublish::state_bits() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.state_bits)
+  return _internal_state_bits();
+}
+inline void CharInfoPublish::_internal_set_state_bits(uint32_t value) {
+  
+  _impl_.state_bits_ = value;
+}
+inline void CharInfoPublish::set_state_bits(uint32_t value) {
+  _internal_set_state_bits(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.state_bits)
+}
+
+// fixed32 detr_state_bits = 35;
+inline void CharInfoPublish::clear_detr_state_bits() {
+  _impl_.detr_state_bits_ = 0u;
+}
+inline uint32_t CharInfoPublish::_internal_detr_state_bits() const {
+  return _impl_.detr_state_bits_;
+}
+inline uint32_t CharInfoPublish::detr_state_bits() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.detr_state_bits)
+  return _internal_detr_state_bits();
+}
+inline void CharInfoPublish::_internal_set_detr_state_bits(uint32_t value) {
+  
+  _impl_.detr_state_bits_ = value;
+}
+inline void CharInfoPublish::set_detr_state_bits(uint32_t value) {
+  _internal_set_detr_state_bits(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.detr_state_bits)
+}
+
+// fixed32 bene_state_bits = 36;
+inline void CharInfoPublish::clear_bene_state_bits() {
+  _impl_.bene_state_bits_ = 0u;
+}
+inline uint32_t CharInfoPublish::_internal_bene_state_bits() const {
+  return _impl_.bene_state_bits_;
+}
+inline uint32_t CharInfoPublish::bene_state_bits() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.bene_state_bits)
+  return _internal_bene_state_bits();
+}
+inline void CharInfoPublish::_internal_set_bene_state_bits(uint32_t value) {
+  
+  _impl_.bene_state_bits_ = value;
+}
+inline void CharInfoPublish::set_bene_state_bits(uint32_t value) {
+  _internal_set_bene_state_bits(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.bene_state_bits)
+}
+
+// int32 casting_spell_id = 37;
+inline void CharInfoPublish::clear_casting_spell_id() {
+  _impl_.casting_spell_id_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_casting_spell_id() const {
+  return _impl_.casting_spell_id_;
+}
+inline int32_t CharInfoPublish::casting_spell_id() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.casting_spell_id)
+  return _internal_casting_spell_id();
+}
+inline void CharInfoPublish::_internal_set_casting_spell_id(int32_t value) {
+  
+  _impl_.casting_spell_id_ = value;
+}
+inline void CharInfoPublish::set_casting_spell_id(int32_t value) {
+  _internal_set_casting_spell_id(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.casting_spell_id)
+}
+
+// int32 combat_state = 38;
+inline void CharInfoPublish::clear_combat_state() {
+  _impl_.combat_state_ = 0;
+}
+inline int32_t CharInfoPublish::_internal_combat_state() const {
+  return _impl_.combat_state_;
+}
+inline int32_t CharInfoPublish::combat_state() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.combat_state)
+  return _internal_combat_state();
+}
+inline void CharInfoPublish::_internal_set_combat_state(int32_t value) {
+  
+  _impl_.combat_state_ = value;
+}
+inline void CharInfoPublish::set_combat_state(int32_t value) {
+  _internal_set_combat_state(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.combat_state)
+}
+
+// repeated int32 gem = 39;
+inline int CharInfoPublish::_internal_gem_size() const {
+  return _impl_.gem_.size();
+}
+inline int CharInfoPublish::gem_size() const {
+  return _internal_gem_size();
+}
+inline void CharInfoPublish::clear_gem() {
+  _impl_.gem_.Clear();
+}
+inline int32_t CharInfoPublish::_internal_gem(int index) const {
+  return _impl_.gem_.Get(index);
+}
+inline int32_t CharInfoPublish::gem(int index) const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.gem)
+  return _internal_gem(index);
+}
+inline void CharInfoPublish::set_gem(int index, int32_t value) {
+  _impl_.gem_.Set(index, value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.gem)
+}
+inline void CharInfoPublish::_internal_add_gem(int32_t value) {
+  _impl_.gem_.Add(value);
+}
+inline void CharInfoPublish::add_gem(int32_t value) {
+  _internal_add_gem(value);
+  // @@protoc_insertion_point(field_add:mq.proto.charinfo.CharInfoPublish.gem)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CharInfoPublish::_internal_gem() const {
+  return _impl_.gem_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CharInfoPublish::gem() const {
+  // @@protoc_insertion_point(field_list:mq.proto.charinfo.CharInfoPublish.gem)
+  return _internal_gem();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CharInfoPublish::_internal_mutable_gem() {
+  return &_impl_.gem_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CharInfoPublish::mutable_gem() {
+  // @@protoc_insertion_point(field_mutable_list:mq.proto.charinfo.CharInfoPublish.gem)
+  return _internal_mutable_gem();
+}
+
+// float version = 40;
+inline void CharInfoPublish::clear_version() {
+  _impl_.version_ = 0;
+}
+inline float CharInfoPublish::_internal_version() const {
+  return _impl_.version_;
+}
+inline float CharInfoPublish::version() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.version)
+  return _internal_version();
+}
+inline void CharInfoPublish::_internal_set_version(float value) {
+  
+  _impl_.version_ = value;
+}
+inline void CharInfoPublish::set_version(float value) {
+  _internal_set_version(value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.version)
+}
+
+// .mq.proto.charinfo.ExperienceInfo experience = 41;
+inline bool CharInfoPublish::_internal_has_experience() const {
+  return this != internal_default_instance() && _impl_.experience_ != nullptr;
+}
+inline bool CharInfoPublish::has_experience() const {
+  return _internal_has_experience();
+}
+inline void CharInfoPublish::clear_experience() {
+  if (GetArenaForAllocation() == nullptr && _impl_.experience_ != nullptr) {
+    delete _impl_.experience_;
+  }
+  _impl_.experience_ = nullptr;
+}
+inline const ::mq::proto::charinfo::ExperienceInfo& CharInfoPublish::_internal_experience() const {
+  const ::mq::proto::charinfo::ExperienceInfo* p = _impl_.experience_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mq::proto::charinfo::ExperienceInfo&>(
+      ::mq::proto::charinfo::_ExperienceInfo_default_instance_);
+}
+inline const ::mq::proto::charinfo::ExperienceInfo& CharInfoPublish::experience() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.experience)
+  return _internal_experience();
+}
+inline void CharInfoPublish::unsafe_arena_set_allocated_experience(
+    ::mq::proto::charinfo::ExperienceInfo* experience) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.experience_);
+  }
+  _impl_.experience_ = experience;
+  if (experience) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mq.proto.charinfo.CharInfoPublish.experience)
+}
+inline ::mq::proto::charinfo::ExperienceInfo* CharInfoPublish::release_experience() {
+  
+  ::mq::proto::charinfo::ExperienceInfo* temp = _impl_.experience_;
+  _impl_.experience_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mq::proto::charinfo::ExperienceInfo* CharInfoPublish::unsafe_arena_release_experience() {
+  // @@protoc_insertion_point(field_release:mq.proto.charinfo.CharInfoPublish.experience)
+  
+  ::mq::proto::charinfo::ExperienceInfo* temp = _impl_.experience_;
+  _impl_.experience_ = nullptr;
+  return temp;
+}
+inline ::mq::proto::charinfo::ExperienceInfo* CharInfoPublish::_internal_mutable_experience() {
+  
+  if (_impl_.experience_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mq::proto::charinfo::ExperienceInfo>(GetArenaForAllocation());
+    _impl_.experience_ = p;
+  }
+  return _impl_.experience_;
+}
+inline ::mq::proto::charinfo::ExperienceInfo* CharInfoPublish::mutable_experience() {
+  ::mq::proto::charinfo::ExperienceInfo* _msg = _internal_mutable_experience();
+  // @@protoc_insertion_point(field_mutable:mq.proto.charinfo.CharInfoPublish.experience)
+  return _msg;
+}
+inline void CharInfoPublish::set_allocated_experience(::mq::proto::charinfo::ExperienceInfo* experience) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.experience_;
+  }
+  if (experience) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(experience);
+    if (message_arena != submessage_arena) {
+      experience = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, experience, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.experience_ = experience;
+  // @@protoc_insertion_point(field_set_allocated:mq.proto.charinfo.CharInfoPublish.experience)
+}
+
+// .mq.proto.charinfo.MakeCampInfo make_camp = 42;
+inline bool CharInfoPublish::_internal_has_make_camp() const {
+  return this != internal_default_instance() && _impl_.make_camp_ != nullptr;
+}
+inline bool CharInfoPublish::has_make_camp() const {
+  return _internal_has_make_camp();
+}
+inline void CharInfoPublish::clear_make_camp() {
+  if (GetArenaForAllocation() == nullptr && _impl_.make_camp_ != nullptr) {
+    delete _impl_.make_camp_;
+  }
+  _impl_.make_camp_ = nullptr;
+}
+inline const ::mq::proto::charinfo::MakeCampInfo& CharInfoPublish::_internal_make_camp() const {
+  const ::mq::proto::charinfo::MakeCampInfo* p = _impl_.make_camp_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mq::proto::charinfo::MakeCampInfo&>(
+      ::mq::proto::charinfo::_MakeCampInfo_default_instance_);
+}
+inline const ::mq::proto::charinfo::MakeCampInfo& CharInfoPublish::make_camp() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.make_camp)
+  return _internal_make_camp();
+}
+inline void CharInfoPublish::unsafe_arena_set_allocated_make_camp(
+    ::mq::proto::charinfo::MakeCampInfo* make_camp) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.make_camp_);
+  }
+  _impl_.make_camp_ = make_camp;
+  if (make_camp) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mq.proto.charinfo.CharInfoPublish.make_camp)
+}
+inline ::mq::proto::charinfo::MakeCampInfo* CharInfoPublish::release_make_camp() {
+  
+  ::mq::proto::charinfo::MakeCampInfo* temp = _impl_.make_camp_;
+  _impl_.make_camp_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mq::proto::charinfo::MakeCampInfo* CharInfoPublish::unsafe_arena_release_make_camp() {
+  // @@protoc_insertion_point(field_release:mq.proto.charinfo.CharInfoPublish.make_camp)
+  
+  ::mq::proto::charinfo::MakeCampInfo* temp = _impl_.make_camp_;
+  _impl_.make_camp_ = nullptr;
+  return temp;
+}
+inline ::mq::proto::charinfo::MakeCampInfo* CharInfoPublish::_internal_mutable_make_camp() {
+  
+  if (_impl_.make_camp_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mq::proto::charinfo::MakeCampInfo>(GetArenaForAllocation());
+    _impl_.make_camp_ = p;
+  }
+  return _impl_.make_camp_;
+}
+inline ::mq::proto::charinfo::MakeCampInfo* CharInfoPublish::mutable_make_camp() {
+  ::mq::proto::charinfo::MakeCampInfo* _msg = _internal_mutable_make_camp();
+  // @@protoc_insertion_point(field_mutable:mq.proto.charinfo.CharInfoPublish.make_camp)
+  return _msg;
+}
+inline void CharInfoPublish::set_allocated_make_camp(::mq::proto::charinfo::MakeCampInfo* make_camp) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.make_camp_;
+  }
+  if (make_camp) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(make_camp);
+    if (message_arena != submessage_arena) {
+      make_camp = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, make_camp, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.make_camp_ = make_camp;
+  // @@protoc_insertion_point(field_set_allocated:mq.proto.charinfo.CharInfoPublish.make_camp)
+}
+
+// .mq.proto.charinfo.MacroInfo macro = 43;
+inline bool CharInfoPublish::_internal_has_macro() const {
+  return this != internal_default_instance() && _impl_.macro_ != nullptr;
+}
+inline bool CharInfoPublish::has_macro() const {
+  return _internal_has_macro();
+}
+inline void CharInfoPublish::clear_macro() {
+  if (GetArenaForAllocation() == nullptr && _impl_.macro_ != nullptr) {
+    delete _impl_.macro_;
+  }
+  _impl_.macro_ = nullptr;
+}
+inline const ::mq::proto::charinfo::MacroInfo& CharInfoPublish::_internal_macro() const {
+  const ::mq::proto::charinfo::MacroInfo* p = _impl_.macro_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mq::proto::charinfo::MacroInfo&>(
+      ::mq::proto::charinfo::_MacroInfo_default_instance_);
+}
+inline const ::mq::proto::charinfo::MacroInfo& CharInfoPublish::macro() const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.macro)
+  return _internal_macro();
+}
+inline void CharInfoPublish::unsafe_arena_set_allocated_macro(
+    ::mq::proto::charinfo::MacroInfo* macro) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.macro_);
+  }
+  _impl_.macro_ = macro;
+  if (macro) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mq.proto.charinfo.CharInfoPublish.macro)
+}
+inline ::mq::proto::charinfo::MacroInfo* CharInfoPublish::release_macro() {
+  
+  ::mq::proto::charinfo::MacroInfo* temp = _impl_.macro_;
+  _impl_.macro_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mq::proto::charinfo::MacroInfo* CharInfoPublish::unsafe_arena_release_macro() {
+  // @@protoc_insertion_point(field_release:mq.proto.charinfo.CharInfoPublish.macro)
+  
+  ::mq::proto::charinfo::MacroInfo* temp = _impl_.macro_;
+  _impl_.macro_ = nullptr;
+  return temp;
+}
+inline ::mq::proto::charinfo::MacroInfo* CharInfoPublish::_internal_mutable_macro() {
+  
+  if (_impl_.macro_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mq::proto::charinfo::MacroInfo>(GetArenaForAllocation());
+    _impl_.macro_ = p;
+  }
+  return _impl_.macro_;
+}
+inline ::mq::proto::charinfo::MacroInfo* CharInfoPublish::mutable_macro() {
+  ::mq::proto::charinfo::MacroInfo* _msg = _internal_mutable_macro();
+  // @@protoc_insertion_point(field_mutable:mq.proto.charinfo.CharInfoPublish.macro)
+  return _msg;
+}
+inline void CharInfoPublish::set_allocated_macro(::mq::proto::charinfo::MacroInfo* macro) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.macro_;
+  }
+  if (macro) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(macro);
+    if (message_arena != submessage_arena) {
+      macro = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, macro, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.macro_ = macro;
+  // @@protoc_insertion_point(field_set_allocated:mq.proto.charinfo.CharInfoPublish.macro)
+}
+
+// repeated int32 free_inventory = 44;
+inline int CharInfoPublish::_internal_free_inventory_size() const {
+  return _impl_.free_inventory_.size();
+}
+inline int CharInfoPublish::free_inventory_size() const {
+  return _internal_free_inventory_size();
+}
+inline void CharInfoPublish::clear_free_inventory() {
+  _impl_.free_inventory_.Clear();
+}
+inline int32_t CharInfoPublish::_internal_free_inventory(int index) const {
+  return _impl_.free_inventory_.Get(index);
+}
+inline int32_t CharInfoPublish::free_inventory(int index) const {
+  // @@protoc_insertion_point(field_get:mq.proto.charinfo.CharInfoPublish.free_inventory)
+  return _internal_free_inventory(index);
+}
+inline void CharInfoPublish::set_free_inventory(int index, int32_t value) {
+  _impl_.free_inventory_.Set(index, value);
+  // @@protoc_insertion_point(field_set:mq.proto.charinfo.CharInfoPublish.free_inventory)
+}
+inline void CharInfoPublish::_internal_add_free_inventory(int32_t value) {
+  _impl_.free_inventory_.Add(value);
+}
+inline void CharInfoPublish::add_free_inventory(int32_t value) {
+  _internal_add_free_inventory(value);
+  // @@protoc_insertion_point(field_add:mq.proto.charinfo.CharInfoPublish.free_inventory)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CharInfoPublish::_internal_free_inventory() const {
+  return _impl_.free_inventory_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CharInfoPublish::free_inventory() const {
+  // @@protoc_insertion_point(field_list:mq.proto.charinfo.CharInfoPublish.free_inventory)
+  return _internal_free_inventory();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CharInfoPublish::_internal_mutable_free_inventory() {
+  return &_impl_.free_inventory_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CharInfoPublish::mutable_free_inventory() {
+  // @@protoc_insertion_point(field_mutable_list:mq.proto.charinfo.CharInfoPublish.free_inventory)
+  return _internal_mutable_free_inventory();
+}
+
 // -------------------------------------------------------------------
 
 // CharInfoRemove
@@ -3338,6 +5429,12 @@ inline void CharInfoMessage::set_allocated_remove(::mq::proto::charinfo::CharInf
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
