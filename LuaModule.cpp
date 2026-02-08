@@ -1,6 +1,12 @@
 /*
  * Lua module for MQCharInfo: require("plugin.charinfo")
  * Exposes GetInfo, GetPeers, GetPeerCnt, GetPeer (with Stacks/StacksPet).
+ *
+ * IMPORTANT (do not change without testing require("plugin.charinfo") and the loader):
+ * - CreateLuaModule must be exported as "CreateLuaModule" so MQ2Lua's GetPluginProc(..., "CreateLuaModule") finds it.
+ * - PLUGIN_API (extern "C" __declspec(dllexport)) is used on purpose: it exports the unmangled name. VC++ warns
+ *   C4190 (C linkage with C++ return type) but it works. Do not replace with __declspec(dllexport) alone or add
+ *   a .def unless the export actually fails.
  */
 
 #include "CharInfo.h"
@@ -14,7 +20,7 @@
 
 using namespace mq::proto::charinfo;
 
-static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish& peer)
+static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 {
 	sol::table t = L.create_table();
 
@@ -50,13 +56,16 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish& peer)
 	zoneT["ID"] = peer.zone().id();
 	t["Zone"] = zoneT;
 
-	auto addBuffList = [&](int size, const auto& access) {
+	auto addBuffList = [&](int size, const auto &access)
+	{
 		sol::table arr = L.create_table();
-		for (int i = 0; i < size; i++) {
-			const auto& e = access(i);
+		for (int i = 0; i < size; i++)
+		{
+			const auto &e = access(i);
 			sol::table entry = L.create_table();
 			entry["Duration"] = e.duration();
-			if (e.has_spell()) {
+			if (e.has_spell())
+			{
 				sol::table sp = L.create_table();
 				sp["Name"] = e.spell().name();
 				sp["ID"] = e.spell().id();
@@ -69,20 +78,25 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish& peer)
 		return arr;
 	};
 
-	t["Buff"] = addBuffList(peer.buff_size(), [&](int i) -> const CharInfoPublish::BuffEntry& { return peer.buff(i); });
-	t["ShortBuff"] = addBuffList(peer.short_buff_size(), [&](int i) -> const CharInfoPublish::BuffEntry& { return peer.short_buff(i); });
-	t["PetBuff"] = addBuffList(peer.pet_buff_size(), [&](int i) -> const CharInfoPublish::BuffEntry& { return peer.pet_buff(i); });
+	t["Buff"] = addBuffList(peer.buff_size(), [&](int i) -> const BuffEntry &
+							{ return peer.buff(i); });
+	t["ShortBuff"] = addBuffList(peer.short_buff_size(), [&](int i) -> const BuffEntry &
+								 { return peer.short_buff(i); });
+	t["PetBuff"] = addBuffList(peer.pet_buff_size(), [&](int i) -> const BuffEntry &
+							   { return peer.pet_buff(i); });
 
 	return t;
 }
 
+// Keep PLUGIN_API: exports unmangled "CreateLuaModule" for GetPluginProc. C4190 warning is acceptable.
 PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 {
 	sol::state_view L(s);
 
 	sol::table module = L.create_table();
 
-	module["GetInfo"] = [](sol::this_state L, const std::string& name) -> sol::object {
+	module["GetInfo"] = [](sol::this_state L, const std::string &name) -> sol::object
+	{
 		sol::state_view sv(L);
 		std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 		auto it = charinfo::GetPeers().find(name);
@@ -91,11 +105,12 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 		return sol::make_object(L, PeerToLuaTable(sv, it->second));
 	};
 
-	module["GetPeers"] = [](sol::this_state L) {
+	module["GetPeers"] = [](sol::this_state L)
+	{
 		sol::state_view sv(L);
 		std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 		std::vector<std::string> names;
-		for (const auto& p : charinfo::GetPeers())
+		for (const auto &p : charinfo::GetPeers())
 			names.push_back(p.first);
 		std::sort(names.begin(), names.end());
 		sol::table arr = sv.create_table();
@@ -104,20 +119,23 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 		return sol::make_object(L, arr);
 	};
 
-	module["GetPeerCnt"] = []() {
+	module["GetPeerCnt"] = []()
+	{
 		std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 		return static_cast<int>(charinfo::GetPeers().size());
 	};
 
-	module["GetPeer"] = [](sol::this_state L, const std::string& name) -> sol::object {
+	module["GetPeer"] = [](sol::this_state L, const std::string &name) -> sol::object
+	{
 		sol::state_view sv(L);
 		std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 		auto it = charinfo::GetPeers().find(name);
 		if (it == charinfo::GetPeers().end())
 			return sol::lua_nil;
-		const CharInfoPublish& peer = it->second;
+		const CharInfoPublish &peer = it->second;
 		sol::table proxy = PeerToLuaTable(sv, peer);
-		proxy["Stacks"] = [peer](sol::object spellObj) {
+		proxy["Stacks"] = [peer](sol::object spellObj)
+		{
 			std::string spell;
 			if (spellObj.is<std::string>())
 				spell = spellObj.as<std::string>();
@@ -127,7 +145,8 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 				return false;
 			return charinfo::StacksForPeer(peer, spell.c_str());
 		};
-		proxy["StacksPet"] = [peer](sol::object spellObj) {
+		proxy["StacksPet"] = [peer](sol::object spellObj)
+		{
 			std::string spell;
 			if (spellObj.is<std::string>())
 				spell = spellObj.as<std::string>();
@@ -142,14 +161,13 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 
 	// Callable: Charinfo(name) == GetPeer(name). First arg is self (module), second is name.
 	module[sol::metatable_key] = L.create_table_with(
-		sol::meta_function::call, [](sol::this_state L, sol::variadic_args args) -> sol::object {
-			if (args.count() < 2)
+		sol::meta_function::call, [](sol::this_state L, sol::variadic_args args) -> sol::object
+		{
+			if (args.size() < 2)
 				return sol::lua_nil;
 			sol::table self = args.get<sol::table>(0);
 			std::string name = args.get<std::string>(1);
-			return self["GetPeer"].get<sol::function>()(name);
-		}
-	);
+			return self["GetPeer"].get<sol::function>()(name); });
 
 	return sol::make_object(L, module);
 }

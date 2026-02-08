@@ -4,17 +4,19 @@ C++ plugin that publishes character data via the Actors system and exposes a Lua
 
 ## Lua module
 
-Load the module with:
+MQ2Lua’s package loader supports `plugin.*` and `plugin/*`. Load the module with:
 
 ```lua
-local Charinfo = require("plugin.charinfo")
+local charinfo = require("plugin.charinfo")
 ```
 
-**Requirement:** `require("plugin.charinfo")` requires MQ2Lua to support the `plugin.*` package loader (e.g. resolving `plugin.charinfo` via `GetPluginProc("MQ2CharInfo", "CreateLuaModule")`). If that loader is not present, it must be added in MQ2Lua (outside this plugin).
+The plugin is built as **MQcharinfo.dll** so its canonical name is **`charinfo`**. Use **`plugin.charinfo`** (lowercase) so the loader finds the module even when the require name is lowercased.
+
+The loader resolves the plugin by canonical name (from the DLL: **MQcharinfo** → **charinfo**) and calls `GetPluginProc(plugin, "CreateLuaModule")`. No `.def` is required. If you see *"does not export CreateLuaModule"*, the plugin may be unloaded or the export may be missing.
 
 ## API (read-only)
 
 - `GetInfo(name)` – table for peer `name`, or `nil`
 - `GetPeers()` – sorted array of peer names
 - `GetPeerCnt()` – number of peers
-- `GetPeer(name)` – proxy table with peer data plus `Stacks(spell)` and `StacksPet(spell)`; `Charinfo(name)` is equivalent to `GetPeer(name)`
+- `GetPeer(name)` – proxy table with peer data plus `Stacks(spell)` and `StacksPet(spell)`;

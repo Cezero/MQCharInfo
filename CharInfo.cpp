@@ -36,7 +36,7 @@ static void AddBuffEntry(mq::proto::charinfo::CharInfoPublish* msg,
 	if (spell->Name[0])
 		si->set_name(spell->Name);
 	si->set_category(spell->Category);
-	si->set_level(spell->Level);
+	si->set_level(static_cast<int>(spell->GetSpellLevelNeeded(GetPcProfile()->Class)));
 
 	if (spell->SpellType == SpellType_Detrimental && detrimentals)
 		(*detrimentals)++;
@@ -126,7 +126,7 @@ bool BuildPublishPayload(mq::proto::charinfo::CharInfoPublish* out)
 				if (spell->Name[0])
 					si->set_name(spell->Name);
 				si->set_category(spell->Category);
-				si->set_level(spell->Level);
+				si->set_level(static_cast<int>(spell->GetSpellLevelNeeded(GetPcProfile()->Class)));
 			}
 		}
 		PlayerClient* pet = GetSpawnByID(pLocalPlayer->PetID);
