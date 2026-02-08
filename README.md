@@ -28,8 +28,10 @@ The plugin DLL is **MQCharinfo.dll** (canonical name **Charinfo**). Use **`plugi
 
 **Stacks / StacksPet** (only on the table returned by `GetPeer(name)`):
 
-- `peer.Stacks(spell)` — `true` if the given spell (name or ID string) would stack with all of this peer’s long and short buffs. Accepts a string or number (spell ID).
-- `peer.StacksPet(spell)` — same, but for the peer’s pet buffs.
+These are methods and must be called with a colon: use `peer:Stacks(spell)` and `peer:StacksPet(spell)`, not `peer.Stacks(spell)`.
+
+- `peer:Stacks(spell)` — `true` if the given spell (name or ID string) would stack with all of this peer’s long and short buffs. Accepts a string or number (spell ID).
+- `peer:StacksPet(spell)` — same, but for the peer’s pet buffs.
 
 ---
 
@@ -156,7 +158,7 @@ for i = 1, #names do
             print("  Distance:", peer.Zone.Distance)
         end
         -- Check if a spell would stack on this peer (requires GetPeer, not GetInfo)
-        if peer.Stacks and peer.Stacks("Clarity II") then
+        if peer.Stacks and peer:Stacks("Clarity II") then
             print("  Clarity II would stack")
         end
     end

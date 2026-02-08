@@ -161,7 +161,7 @@ namespace
 			"Level", sol::property([](const CharinfoPeerRef &ref, sol::this_state L)
 								   { return GuardPeer(L, ref, [L](const charinfo::CharinfoPeer &peer)
 													  { return sol::make_object(L, peer.level); }); }),
-			"PctHps", sol::property([](const CharinfoPeerRef &ref, sol::this_state L)
+			"PctHPs", sol::property([](const CharinfoPeerRef &ref, sol::this_state L)
 									{ return GuardPeer(L, ref, [L](const charinfo::CharinfoPeer &peer)
 													   { return sol::make_object(L, peer.pct_hps); }); }),
 			"PctMana", sol::property([](const CharinfoPeerRef &ref, sol::this_state L)
@@ -315,12 +315,26 @@ namespace
 			if (!ref.ptr || ref.ptr->invalidated() || !ref.ptr->has_macro) return sol::make_object(L, sol::lua_nil);
 			return sol::make_object(L, ref.ptr->macro); }),
 
-			"Stacks", sol::overload([](const CharinfoPeerRef &ref, const std::string &spell)
-									{ return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksForPeer(*ref.ptr, spell.c_str()); }, [](const CharinfoPeerRef &ref, int spellId)
-									{ return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksForPeer(*ref.ptr, std::to_string(spellId).c_str()); }),
-			"StacksPet", sol::overload([](const CharinfoPeerRef &ref, const std::string &spell)
-									   { return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksPetForPeer(*ref.ptr, spell.c_str()); }, [](const CharinfoPeerRef &ref, int spellId)
-									   { return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksPetForPeer(*ref.ptr, std::to_string(spellId).c_str()); }),
+			"Stacks", sol::overload(
+				[](const CharinfoPeerRef &ref, const std::string &spell)
+					{ return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksForPeer(*ref.ptr, spell.c_str()); },
+				[](const CharinfoPeerRef &ref, const sol::object &spellArg) -> bool {
+					if (!ref.ptr || ref.ptr->invalidated()) return false;
+					sol::type t = spellArg.get_type();
+					if (t == sol::type::string) return charinfo::StacksForPeer(*ref.ptr, spellArg.as<std::string>().c_str());
+					if (t == sol::type::number) return charinfo::StacksForPeer(*ref.ptr, std::to_string(static_cast<int>(spellArg.as<double>())).c_str());
+					return false;
+				}),
+			"StacksPet", sol::overload(
+				[](const CharinfoPeerRef &ref, const std::string &spell)
+					{ return ref.ptr && !ref.ptr->invalidated() && charinfo::StacksPetForPeer(*ref.ptr, spell.c_str()); },
+				[](const CharinfoPeerRef &ref, const sol::object &spellArg) -> bool {
+					if (!ref.ptr || ref.ptr->invalidated()) return false;
+					sol::type t = spellArg.get_type();
+					if (t == sol::type::string) return charinfo::StacksPetForPeer(*ref.ptr, spellArg.as<std::string>().c_str());
+					if (t == sol::type::number) return charinfo::StacksPetForPeer(*ref.ptr, std::to_string(static_cast<int>(spellArg.as<double>())).c_str());
+					return false;
+				}),
 
 			sol::meta_function::to_string, [](const CharinfoPeerRef &ref)
 			{
