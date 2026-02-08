@@ -63,9 +63,9 @@
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Plugin.props))\src\Plugin.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Plugin.props))' != '' " />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <!-- Output MQcharinfo.dll so canonical name is "charinfo" and require("plugin.charinfo") resolves (loader lowercases). -->
+  <!-- Output MQCharinfo.dll so canonical name is "Charinfo" and both loader paths agree; require("plugin.charinfo") works via case-insensitive lookup. -->
   <PropertyGroup>
-    <TargetName>MQcharinfo</TargetName>
+    <TargetName>MQCharinfo</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,25 +117,25 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="CharInfo.cpp" />
-    <ClCompile Include="CharInfoPanel.cpp" />
+    <ClCompile Include="Charinfo.cpp" />
+    <ClCompile Include="CharinfoPanel.cpp" />
     <ClCompile Include="LuaModule.cpp" />
-    <ClCompile Include="MQCharInfo.cpp" />
+    <ClCompile Include="MQCharinfo.cpp" />
     <ClCompile Include="charinfo.pb.cc">
       <DependentUpon>charinfo.proto</DependentUpon>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CharInfo.h" />
-    <ClInclude Include="CharInfoPanel.h" />
+    <ClInclude Include="Charinfo.h" />
+    <ClInclude Include="CharinfoPanel.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="charinfo.pb.h">
       <DependentUpon>charinfo.proto</DependentUpon>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQCharInfo.rc" />
+    <ResourceCompile Include="MQCharinfo.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

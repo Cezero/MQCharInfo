@@ -2,10 +2,64 @@ syntax = "proto3";
 
 package mq.proto.charinfo;
 
-enum CharInfoMessageId {
+enum CharinfoMessageId {
   None = 0;
   Publish = 1;
   Remove = 2;
+  Update = 3;
+  Joined = 4;
+}
+
+// Field IDs for delta updates. Match CharinfoPublish field order.
+enum CharinfoFieldId {
+  FIELD_NONE = 0;
+  FIELD_sender = 1;
+  FIELD_name = 2;
+  FIELD_id = 3;
+  FIELD_level = 4;
+  FIELD_class_info = 5;
+  FIELD_pct_hps = 6;
+  FIELD_pct_mana = 7;
+  FIELD_target = 8;
+  FIELD_target_hp = 9;
+  FIELD_zone = 10;
+  FIELD_buff_spells = 11;
+  FIELD_buff_durations = 12;
+  FIELD_short_buff_spells = 13;
+  FIELD_short_buff_durations = 14;
+  FIELD_pet_buff_spells = 15;
+  FIELD_pet_buff_durations = 16;
+  FIELD_free_buff_slots = 17;
+  FIELD_detrimentals = 18;
+  FIELD_count_poison = 19;
+  FIELD_count_disease = 20;
+  FIELD_count_curse = 21;
+  FIELD_count_corruption = 22;
+  FIELD_pet_hp = 23;
+  FIELD_max_endurance = 24;
+  FIELD_current_hp = 25;
+  FIELD_max_hp = 26;
+  FIELD_current_mana = 27;
+  FIELD_max_mana = 28;
+  FIELD_current_endurance = 29;
+  FIELD_pct_endurance = 30;
+  FIELD_pet_id = 31;
+  FIELD_pet_affinity = 32;
+  FIELD_no_cure = 33;
+  FIELD_life_drain = 34;
+  FIELD_mana_drain = 35;
+  FIELD_endu_drain = 36;
+  FIELD_state_bits = 37;
+  FIELD_detr_state_bits = 38;
+  FIELD_bene_state_bits = 39;
+  FIELD_casting_spell_id = 40;
+  FIELD_combat_state = 41;
+  FIELD_gem = 42;
+  FIELD_version = 43;
+  FIELD_experience = 44;
+  FIELD_make_camp = 45;
+  FIELD_macro = 46;
+  FIELD_free_inventory = 47;
 }
 
 message SpellInfo {
@@ -15,9 +69,13 @@ message SpellInfo {
   int32 level = 4;
 }
 
-message BuffEntry {
-  int32 duration = 1;  // -1 or 0 for permanent/unknown
-  SpellInfo spell = 2;
+// Wrappers for delta repeated fields.
+message SpellInfoList {
+  repeated SpellInfo spell = 1;
+}
+
+message Int32List {
+  repeated int32 value = 1;
 }
 
 message ClassInfo {
@@ -65,7 +123,7 @@ message MacroInfo {
   string macro_name = 2;
 }
 
-message CharInfoPublish {
+message CharinfoPublish {
   string sender = 1;
   string name = 2;
   int32 id = 3;
@@ -76,58 +134,92 @@ message CharInfoPublish {
   TargetInfo target = 8;
   int32 target_hp = 9;
   ZoneInfo zone = 10;
-  repeated BuffEntry buff = 11;
-  repeated BuffEntry short_buff = 12;
-  repeated BuffEntry pet_buff = 13;
-  int32 free_buff_slots = 14;
-  int32 detrimentals = 15;
-  int32 count_poison = 16;
-  int32 count_disease = 17;
-  int32 count_curse = 18;
-  int32 count_corruption = 19;
-  int32 pet_hp = 20;
-  int32 max_endurance = 21;
+  repeated SpellInfo buff_spells = 11;
+  repeated int32 buff_durations = 12;
+  repeated SpellInfo short_buff_spells = 13;
+  repeated int32 short_buff_durations = 14;
+  repeated SpellInfo pet_buff_spells = 15;
+  repeated int32 pet_buff_durations = 16;
+  int32 free_buff_slots = 17;
+  int32 detrimentals = 18;
+  int32 count_poison = 19;
+  int32 count_disease = 20;
+  int32 count_curse = 21;
+  int32 count_corruption = 22;
+  int32 pet_hp = 23;
+  int32 max_endurance = 24;
   // Vitals (top-level)
-  int32 current_hp = 22;
-  int32 max_hp = 23;
-  int32 current_mana = 24;
-  int32 max_mana = 25;
-  int32 current_endurance = 26;
-  int32 pct_endurance = 27;
+  int32 current_hp = 25;
+  int32 max_hp = 26;
+  int32 current_mana = 27;
+  int32 max_mana = 28;
+  int32 current_endurance = 29;
+  int32 pct_endurance = 30;
   // Pet (top-level)
-  int32 pet_id = 28;
-  bool pet_affinity = 29;
+  int32 pet_id = 31;
+  bool pet_affinity = 32;
   // Detrimentals / counters (top-level)
-  int64 no_cure = 30;
-  int64 life_drain = 31;
-  int64 mana_drain = 32;
-  int64 endu_drain = 33;
-  fixed32 state_bits = 34;
-  fixed32 detr_state_bits = 35;
-  fixed32 bene_state_bits = 36;
+  int64 no_cure = 33;
+  int64 life_drain = 34;
+  int64 mana_drain = 35;
+  int64 endu_drain = 36;
+  fixed32 state_bits = 37;
+  fixed32 detr_state_bits = 38;
+  fixed32 bene_state_bits = 39;
   // State / combat
-  int32 casting_spell_id = 37;
-  int32 combat_state = 38;
+  int32 casting_spell_id = 40;
+  int32 combat_state = 41;
   // Gems (ordered spell IDs)
-  repeated int32 gem = 39;
+  repeated int32 gem = 42;
   // Version
-  float version = 40;
+  float version = 43;
   // Experience submessage
-  ExperienceInfo experience = 41;
+  ExperienceInfo experience = 44;
   // MakeCamp submessage (only when MQ2MoveUtils loaded)
-  MakeCampInfo make_camp = 42;
+  MakeCampInfo make_camp = 45;
   // Macro submessage
-  MacroInfo macro = 43;
+  MacroInfo macro = 46;
   // Free inventory by size (e.g. 5 elements for sizes 0-4)
-  repeated int32 free_inventory = 44;
+  repeated int32 free_inventory = 47;
 }
 
-message CharInfoRemove {
+message CharinfoRemove {
   string sender = 1;
 }
 
-message CharInfoMessage {
-  CharInfoMessageId id = 1;
-  CharInfoPublish publish = 2;
-  CharInfoRemove remove = 3;
+message CharinfoJoined {
+  string sender = 1;
+}
+
+message FieldUpdate {
+  CharinfoFieldId field_id = 1;
+  oneof value {
+    int32 i32 = 2;
+    int64 i64 = 3;
+    float f = 4;
+    string str = 5;
+    fixed32 bits = 6;
+    ClassInfo class_info = 7;
+    TargetInfo target = 8;
+    ZoneInfo zone = 9;
+    ExperienceInfo experience = 10;
+    MakeCampInfo make_camp = 11;
+    MacroInfo macro = 12;
+    SpellInfoList spell_list = 13;
+    Int32List int32_list = 14;
+    bool b = 15;
+  }
+}
+
+message CharinfoUpdate {
+  string sender = 1;
+  repeated FieldUpdate updates = 2;
+}
+
+message CharinfoMessage {
+  CharinfoMessageId id = 1;
+  CharinfoPublish publish = 2;
+  CharinfoRemove remove = 3;
+  CharinfoUpdate update = 4;
+  CharinfoJoined joined = 5;
 }

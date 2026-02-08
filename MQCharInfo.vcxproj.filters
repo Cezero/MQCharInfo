@@ -17,13 +17,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CharInfo.cpp">
+    <ClCompile Include="Charinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CharinfoPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LuaModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQCharInfo.cpp">
+    <ClCompile Include="MQCharinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="charinfo.pb.cc">
@@ -31,7 +34,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CharInfo.h">
+    <ClInclude Include="Charinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CharinfoPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -42,7 +48,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQCharInfo.rc">
+    <ResourceCompile Include="MQCharinfo.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

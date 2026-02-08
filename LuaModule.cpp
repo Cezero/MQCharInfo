@@ -1,5 +1,5 @@
 /*
- * Lua module for MQCharInfo: require("plugin.charinfo")
+ * Lua module for MQCharinfo: require("plugin.charinfo")
  * Exposes GetInfo, GetPeers, GetPeerCnt, GetPeer (with Stacks/StacksPet).
  *
  * IMPORTANT (do not change without testing require("plugin.charinfo") and the loader):
@@ -9,7 +9,7 @@
  *   a .def unless the export actually fails.
  */
 
-#include "CharInfo.h"
+#include "Charinfo.h"
 #include "charinfo.pb.h"
 #include "mq/Plugin.h"
 
@@ -35,7 +35,7 @@ static sol::table StringsToLuaTable(sol::state_view L, const std::vector<std::st
 
 } // namespace
 
-static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
+static sol::table PeerToLuaTable(sol::state_view L, const CharinfoPublish &peer)
 {
 	sol::table t = L.create_table();
 
@@ -104,34 +104,37 @@ static sol::table PeerToLuaTable(sol::state_view L, const CharInfoPublish &peer)
 	}
 	t["Zone"] = zoneT;
 
-	auto addBuffList = [&](int size, const auto &access)
+	// Build combined Buff/ShortBuff/PetBuff from buff_spells[i] + buff_durations[i]
+	auto addBuffListFromSpellsAndDurations = [&](int spellSize, int durSize,
+		const auto& getSpell, const auto& getDur)
 	{
 		sol::table arr = L.create_table();
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < spellSize; i++)
 		{
-			const auto &e = access(i);
 			sol::table entry = L.create_table();
-			entry["Duration"] = e.duration();
-			if (e.has_spell())
-			{
-				sol::table sp = L.create_table();
-				sp["Name"] = e.spell().name();
-				sp["ID"] = e.spell().id();
-				sp["Category"] = e.spell().category();
-				sp["Level"] = e.spell().level();
-				entry["Spell"] = sp;
-			}
+			int dur = (i < durSize) ? getDur(i) : -1;
+			entry["Duration"] = dur;
+			const auto& sp = getSpell(i);
+			sol::table spT = L.create_table();
+			spT["Name"] = sp.name();
+			spT["ID"] = sp.id();
+			spT["Category"] = sp.category();
+			spT["Level"] = sp.level();
+			entry["Spell"] = spT;
 			arr[i + 1] = entry;
 		}
 		return arr;
 	};
 
-	t["Buff"] = addBuffList(peer.buff_size(), [&](int i) -> const BuffEntry &
-							{ return peer.buff(i); });
-	t["ShortBuff"] = addBuffList(peer.short_buff_size(), [&](int i) -> const BuffEntry &
-								 { return peer.short_buff(i); });
-	t["PetBuff"] = addBuffList(peer.pet_buff_size(), [&](int i) -> const BuffEntry &
-							   { return peer.pet_buff(i); });
+	t["Buff"] = addBuffListFromSpellsAndDurations(peer.buff_spells_size(), peer.buff_durations_size(),
+		[&](int i) -> const SpellInfo& { return peer.buff_spells(i); },
+		[&](int i) -> int { return peer.buff_durations(i); });
+	t["ShortBuff"] = addBuffListFromSpellsAndDurations(peer.short_buff_spells_size(), peer.short_buff_durations_size(),
+		[&](int i) -> const SpellInfo& { return peer.short_buff_spells(i); },
+		[&](int i) -> int { return peer.short_buff_durations(i); });
+	t["PetBuff"] = addBuffListFromSpellsAndDurations(peer.pet_buff_spells_size(), peer.pet_buff_durations_size(),
+		[&](int i) -> const SpellInfo& { return peer.pet_buff_spells(i); },
+		[&](int i) -> int { return peer.pet_buff_durations(i); });
 
 	// Gems: ordered array of spell tables (Gems[1].ID, Gems[1].Name, ...)
 	{
@@ -245,7 +248,7 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 		auto it = charinfo::GetPeers().find(name);
 		if (it == charinfo::GetPeers().end())
 			return sol::lua_nil;
-		const CharInfoPublish &peer = it->second;
+		const CharinfoPublish &peer = it->second;
 		sol::table proxy = PeerToLuaTable(sv, peer);
 		proxy["Stacks"] = [peer](sol::object spellObj)
 		{

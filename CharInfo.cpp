@@ -1,8 +1,8 @@
 /*
- * MQCharInfo - Peer state, payload build, and Stacks/StacksPet (NetBots-style).
+ * MQCharinfo - Peer state, payload build, and Stacks/StacksPet (NetBots-style).
  */
 
-#include "CharInfo.h"
+#include "Charinfo.h"
 #include "mq/Plugin.h"
 
 #include <eqlib/game/Constants.h>
@@ -108,27 +108,29 @@ std::mutex& GetPeersMutex() {
 	return s_peersMutex;
 }
 
-static void AddBuffEntry(mq::proto::charinfo::CharInfoPublish* msg,
+static void AddBuffEntry(mq::proto::charinfo::CharinfoPublish* msg,
 	int spellId, int duration, bool is_long_buff, int* detrimentals)
 {
 	EQ_Spell* spell = GetSpellByID(spellId);
 	if (!spell || spell->ID <= 0)
 		return;
 
-	auto* entry = is_long_buff ? msg->add_buff() : msg->add_short_buff();
-	entry->set_duration(duration);
-	auto* si = entry->mutable_spell();
+	auto* si = is_long_buff ? msg->add_buff_spells() : msg->add_short_buff_spells();
 	si->set_id(spell->ID);
 	if (spell->Name[0])
 		si->set_name(spell->Name);
 	si->set_category(spell->Category);
 	si->set_level(static_cast<int>(spell->GetSpellLevelNeeded(GetPcProfile()->Class)));
+	if (is_long_buff)
+		msg->add_buff_durations(duration);
+	else
+		msg->add_short_buff_durations(duration);
 
 	if (spell->SpellType == SpellType_Detrimental && detrimentals)
 		(*detrimentals)++;
 }
 
-bool BuildPublishPayload(mq::proto::charinfo::CharInfoPublish* out)
+bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 {
 	if (!pLocalPlayer || !GetPcProfile() || !pZoneInfo)
 		return false;
@@ -203,16 +205,15 @@ bool BuildPublishPayload(mq::proto::charinfo::CharInfoPublish* out)
 				continue;
 			int dur = static_cast<int>(pPetInfoWnd->GetBuffTimer(i));
 			if (dur < 0) dur = -1;
-			auto* entry = out->add_pet_buff();
-			entry->set_duration(dur);
 			EQ_Spell* spell = GetSpellByID(spellId);
 			if (spell && spell->ID > 0) {
-				auto* si = entry->mutable_spell();
+				auto* si = out->add_pet_buff_spells();
 				si->set_id(spell->ID);
 				if (spell->Name[0])
 					si->set_name(spell->Name);
 				si->set_category(spell->Category);
 				si->set_level(static_cast<int>(spell->GetSpellLevelNeeded(GetPcProfile()->Class)));
+				out->add_pet_buff_durations(dur);
 			}
 		}
 		PlayerClient* pet = GetSpawnByID(pLocalPlayer->PetID);
@@ -387,7 +388,263 @@ bool BuildPublishPayload(mq::proto::charinfo::CharInfoPublish* out)
 	return true;
 }
 
-bool StacksForPeer(const mq::proto::charinfo::CharInfoPublish& peer, const char* spellNameOrId)
+namespace {
+
+using FieldId = mq::proto::charinfo::CharinfoFieldId;
+
+static bool SpellInfoEqual(const mq::proto::charinfo::SpellInfo& a, const mq::proto::charinfo::SpellInfo& b) {
+	return a.id() == b.id() && a.name() == b.name() && a.category() == b.category() && a.level() == b.level();
+}
+
+static bool BuffSpellsEqual(const mq::proto::charinfo::CharinfoPublish& cur, const mq::proto::charinfo::CharinfoPublish& prev,
+	int (mq::proto::charinfo::CharinfoPublish::*size)() const,
+	const mq::proto::charinfo::SpellInfo& (mq::proto::charinfo::CharinfoPublish::*get)(int) const)
+{
+	int n = (cur.*size)();
+	if ((prev.*size)() != n) return false;
+	for (int i = 0; i < n; i++)
+		if (!SpellInfoEqual((cur.*get)(i), (prev.*get)(i))) return false;
+	return true;
+}
+
+static bool Int32RepeatedEqual(const mq::proto::charinfo::CharinfoPublish& cur, const mq::proto::charinfo::CharinfoPublish& prev,
+	int (mq::proto::charinfo::CharinfoPublish::*size)() const,
+	int32_t (mq::proto::charinfo::CharinfoPublish::*get)(int) const)
+{
+	int n = (cur.*size)();
+	if ((prev.*size)() != n) return false;
+	for (int i = 0; i < n; i++)
+		if ((cur.*get)(i) != (prev.*get)(i)) return false;
+	return true;
+}
+
+} // namespace
+
+bool BuildUpdatePayload(const mq::proto::charinfo::CharinfoPublish& current,
+	const mq::proto::charinfo::CharinfoPublish& previous,
+	mq::proto::charinfo::CharinfoUpdate* out)
+{
+	using Id = mq::proto::charinfo::CharinfoFieldId;
+	bool any = false;
+
+#define ADD_SCALAR_I32(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_i32(current.field()); any = true; } } while(0)
+#define ADD_SCALAR_I64(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_i64(current.field()); any = true; } } while(0)
+#define ADD_SCALAR_F(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_f(current.field()); any = true; } } while(0)
+#define ADD_SCALAR_STR(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_str(current.field()); any = true; } } while(0)
+#define ADD_SCALAR_BITS(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_bits(current.field()); any = true; } } while(0)
+#define ADD_SCALAR_B(field, id) do { if (current.field() != previous.field()) { auto* u = out->add_updates(); u->set_field_id(id); u->set_b(current.field()); any = true; } } while(0)
+
+	ADD_SCALAR_STR(sender, Id::FIELD_sender);
+	ADD_SCALAR_STR(name, Id::FIELD_name);
+	ADD_SCALAR_I32(id, Id::FIELD_id);
+	ADD_SCALAR_I32(level, Id::FIELD_level);
+	if (!current.class_info().SerializeAsString().empty() || !previous.class_info().SerializeAsString().empty()) {
+		if (current.class_info().SerializeAsString() != previous.class_info().SerializeAsString()) {
+			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_class_info); *u->mutable_class_info() = current.class_info(); any = true;
+		}
+	}
+	ADD_SCALAR_I32(pct_hps, Id::FIELD_pct_hps);
+	ADD_SCALAR_I32(pct_mana, Id::FIELD_pct_mana);
+	if (current.target().SerializeAsString() != previous.target().SerializeAsString()) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_target); *u->mutable_target() = current.target(); any = true;
+	}
+	ADD_SCALAR_I32(target_hp, Id::FIELD_target_hp);
+	if (current.zone().SerializeAsString() != previous.zone().SerializeAsString()) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_zone); *u->mutable_zone() = current.zone(); any = true;
+	}
+	if (current.buff_spells_size() != previous.buff_spells_size() ||
+	    !BuffSpellsEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::buff_spells_size, &mq::proto::charinfo::CharinfoPublish::buff_spells)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_buff_spells);
+		auto* list = u->mutable_spell_list(); for (int i = 0; i < current.buff_spells_size(); i++) *list->add_spell() = current.buff_spells(i); any = true;
+	}
+	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::buff_durations_size, &mq::proto::charinfo::CharinfoPublish::buff_durations)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_buff_durations);
+		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.buff_durations_size(); i++) list->add_value(current.buff_durations(i)); any = true;
+	}
+	if (current.short_buff_spells_size() != previous.short_buff_spells_size() ||
+	    !BuffSpellsEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::short_buff_spells_size, &mq::proto::charinfo::CharinfoPublish::short_buff_spells)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_short_buff_spells);
+		auto* list = u->mutable_spell_list(); for (int i = 0; i < current.short_buff_spells_size(); i++) *list->add_spell() = current.short_buff_spells(i); any = true;
+	}
+	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::short_buff_durations_size, &mq::proto::charinfo::CharinfoPublish::short_buff_durations)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_short_buff_durations);
+		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.short_buff_durations_size(); i++) list->add_value(current.short_buff_durations(i)); any = true;
+	}
+	if (current.pet_buff_spells_size() != previous.pet_buff_spells_size() ||
+	    !BuffSpellsEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::pet_buff_spells_size, &mq::proto::charinfo::CharinfoPublish::pet_buff_spells)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_pet_buff_spells);
+		auto* list = u->mutable_spell_list(); for (int i = 0; i < current.pet_buff_spells_size(); i++) *list->add_spell() = current.pet_buff_spells(i); any = true;
+	}
+	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::pet_buff_durations_size, &mq::proto::charinfo::CharinfoPublish::pet_buff_durations)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_pet_buff_durations);
+		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.pet_buff_durations_size(); i++) list->add_value(current.pet_buff_durations(i)); any = true;
+	}
+	ADD_SCALAR_I32(free_buff_slots, Id::FIELD_free_buff_slots);
+	ADD_SCALAR_I32(detrimentals, Id::FIELD_detrimentals);
+	ADD_SCALAR_I32(count_poison, Id::FIELD_count_poison);
+	ADD_SCALAR_I32(count_disease, Id::FIELD_count_disease);
+	ADD_SCALAR_I32(count_curse, Id::FIELD_count_curse);
+	ADD_SCALAR_I32(count_corruption, Id::FIELD_count_corruption);
+	ADD_SCALAR_I32(pet_hp, Id::FIELD_pet_hp);
+	ADD_SCALAR_I32(max_endurance, Id::FIELD_max_endurance);
+	ADD_SCALAR_I32(current_hp, Id::FIELD_current_hp);
+	ADD_SCALAR_I32(max_hp, Id::FIELD_max_hp);
+	ADD_SCALAR_I32(current_mana, Id::FIELD_current_mana);
+	ADD_SCALAR_I32(max_mana, Id::FIELD_max_mana);
+	ADD_SCALAR_I32(current_endurance, Id::FIELD_current_endurance);
+	ADD_SCALAR_I32(pct_endurance, Id::FIELD_pct_endurance);
+	ADD_SCALAR_I32(pet_id, Id::FIELD_pet_id);
+	ADD_SCALAR_B(pet_affinity, Id::FIELD_pet_affinity);
+	ADD_SCALAR_I64(no_cure, Id::FIELD_no_cure);
+	ADD_SCALAR_I64(life_drain, Id::FIELD_life_drain);
+	ADD_SCALAR_I64(mana_drain, Id::FIELD_mana_drain);
+	ADD_SCALAR_I64(endu_drain, Id::FIELD_endu_drain);
+	ADD_SCALAR_BITS(state_bits, Id::FIELD_state_bits);
+	ADD_SCALAR_BITS(detr_state_bits, Id::FIELD_detr_state_bits);
+	ADD_SCALAR_BITS(bene_state_bits, Id::FIELD_bene_state_bits);
+	ADD_SCALAR_I32(casting_spell_id, Id::FIELD_casting_spell_id);
+	ADD_SCALAR_I32(combat_state, Id::FIELD_combat_state);
+	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::gem_size, &mq::proto::charinfo::CharinfoPublish::gem)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_gem);
+		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.gem_size(); i++) list->add_value(current.gem(i)); any = true;
+	}
+	ADD_SCALAR_F(version, Id::FIELD_version);
+	if (current.has_experience() || previous.has_experience()) {
+		if (current.experience().SerializeAsString() != previous.experience().SerializeAsString()) {
+			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_experience); *u->mutable_experience() = current.experience(); any = true;
+		}
+	}
+	if (current.has_make_camp() || previous.has_make_camp()) {
+		if (current.make_camp().SerializeAsString() != previous.make_camp().SerializeAsString()) {
+			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_make_camp); *u->mutable_make_camp() = current.make_camp(); any = true;
+		}
+	}
+	if (current.has_macro() || previous.has_macro()) {
+		if (current.macro().SerializeAsString() != previous.macro().SerializeAsString()) {
+			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_macro); *u->mutable_macro() = current.macro(); any = true;
+		}
+	}
+	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::free_inventory_size, &mq::proto::charinfo::CharinfoPublish::free_inventory)) {
+		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_free_inventory);
+		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.free_inventory_size(); i++) list->add_value(current.free_inventory(i)); any = true;
+	}
+
+#undef ADD_SCALAR_I32
+#undef ADD_SCALAR_I64
+#undef ADD_SCALAR_F
+#undef ADD_SCALAR_STR
+#undef ADD_SCALAR_BITS
+#undef ADD_SCALAR_B
+
+	return any;
+}
+
+bool ApplyFieldUpdate(const mq::proto::charinfo::FieldUpdate& update,
+	mq::proto::charinfo::CharinfoPublish* peer)
+{
+	using Id = mq::proto::charinfo::CharinfoFieldId;
+	switch (update.field_id()) {
+	case Id::FIELD_sender: if (update.has_str()) peer->set_sender(update.str()); break;
+	case Id::FIELD_name: if (update.has_str()) peer->set_name(update.str()); break;
+	case Id::FIELD_id: if (update.has_i32()) peer->set_id(update.i32()); break;
+	case Id::FIELD_level: if (update.has_i32()) peer->set_level(update.i32()); break;
+	case Id::FIELD_class_info: if (update.has_class_info()) *peer->mutable_class_info() = update.class_info(); break;
+	case Id::FIELD_pct_hps: if (update.has_i32()) peer->set_pct_hps(update.i32()); break;
+	case Id::FIELD_pct_mana: if (update.has_i32()) peer->set_pct_mana(update.i32()); break;
+	case Id::FIELD_target: if (update.has_target()) *peer->mutable_target() = update.target(); break;
+	case Id::FIELD_target_hp: if (update.has_i32()) peer->set_target_hp(update.i32()); break;
+	case Id::FIELD_zone: if (update.has_zone()) *peer->mutable_zone() = update.zone(); break;
+	case Id::FIELD_buff_spells:
+		if (update.has_spell_list()) {
+			peer->clear_buff_spells();
+			for (int i = 0; i < update.spell_list().spell_size(); i++)
+				*peer->add_buff_spells() = update.spell_list().spell(i);
+		}
+		break;
+	case Id::FIELD_buff_durations:
+		if (update.has_int32_list()) {
+			peer->clear_buff_durations();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->add_buff_durations(update.int32_list().value(i));
+		}
+		break;
+	case Id::FIELD_short_buff_spells:
+		if (update.has_spell_list()) {
+			peer->clear_short_buff_spells();
+			for (int i = 0; i < update.spell_list().spell_size(); i++)
+				*peer->add_short_buff_spells() = update.spell_list().spell(i);
+		}
+		break;
+	case Id::FIELD_short_buff_durations:
+		if (update.has_int32_list()) {
+			peer->clear_short_buff_durations();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->add_short_buff_durations(update.int32_list().value(i));
+		}
+		break;
+	case Id::FIELD_pet_buff_spells:
+		if (update.has_spell_list()) {
+			peer->clear_pet_buff_spells();
+			for (int i = 0; i < update.spell_list().spell_size(); i++)
+				*peer->add_pet_buff_spells() = update.spell_list().spell(i);
+		}
+		break;
+	case Id::FIELD_pet_buff_durations:
+		if (update.has_int32_list()) {
+			peer->clear_pet_buff_durations();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->add_pet_buff_durations(update.int32_list().value(i));
+		}
+		break;
+	case Id::FIELD_free_buff_slots: if (update.has_i32()) peer->set_free_buff_slots(update.i32()); break;
+	case Id::FIELD_detrimentals: if (update.has_i32()) peer->set_detrimentals(update.i32()); break;
+	case Id::FIELD_count_poison: if (update.has_i32()) peer->set_count_poison(update.i32()); break;
+	case Id::FIELD_count_disease: if (update.has_i32()) peer->set_count_disease(update.i32()); break;
+	case Id::FIELD_count_curse: if (update.has_i32()) peer->set_count_curse(update.i32()); break;
+	case Id::FIELD_count_corruption: if (update.has_i32()) peer->set_count_corruption(update.i32()); break;
+	case Id::FIELD_pet_hp: if (update.has_i32()) peer->set_pet_hp(update.i32()); break;
+	case Id::FIELD_max_endurance: if (update.has_i32()) peer->set_max_endurance(update.i32()); break;
+	case Id::FIELD_current_hp: if (update.has_i32()) peer->set_current_hp(update.i32()); break;
+	case Id::FIELD_max_hp: if (update.has_i32()) peer->set_max_hp(update.i32()); break;
+	case Id::FIELD_current_mana: if (update.has_i32()) peer->set_current_mana(update.i32()); break;
+	case Id::FIELD_max_mana: if (update.has_i32()) peer->set_max_mana(update.i32()); break;
+	case Id::FIELD_current_endurance: if (update.has_i32()) peer->set_current_endurance(update.i32()); break;
+	case Id::FIELD_pct_endurance: if (update.has_i32()) peer->set_pct_endurance(update.i32()); break;
+	case Id::FIELD_pet_id: if (update.has_i32()) peer->set_pet_id(update.i32()); break;
+	case Id::FIELD_pet_affinity: if (update.has_b()) peer->set_pet_affinity(update.b()); break;
+	case Id::FIELD_no_cure: if (update.has_i64()) peer->set_no_cure(update.i64()); break;
+	case Id::FIELD_life_drain: if (update.has_i64()) peer->set_life_drain(update.i64()); break;
+	case Id::FIELD_mana_drain: if (update.has_i64()) peer->set_mana_drain(update.i64()); break;
+	case Id::FIELD_endu_drain: if (update.has_i64()) peer->set_endu_drain(update.i64()); break;
+	case Id::FIELD_state_bits: if (update.has_bits()) peer->set_state_bits(update.bits()); break;
+	case Id::FIELD_detr_state_bits: if (update.has_bits()) peer->set_detr_state_bits(update.bits()); break;
+	case Id::FIELD_bene_state_bits: if (update.has_bits()) peer->set_bene_state_bits(update.bits()); break;
+	case Id::FIELD_casting_spell_id: if (update.has_i32()) peer->set_casting_spell_id(update.i32()); break;
+	case Id::FIELD_combat_state: if (update.has_i32()) peer->set_combat_state(update.i32()); break;
+	case Id::FIELD_gem:
+		if (update.has_int32_list()) {
+			peer->clear_gem();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->add_gem(update.int32_list().value(i));
+		}
+		break;
+	case Id::FIELD_version: if (update.has_f()) peer->set_version(update.f()); break;
+	case Id::FIELD_experience: if (update.has_experience()) *peer->mutable_experience() = update.experience(); break;
+	case Id::FIELD_make_camp: if (update.has_make_camp()) *peer->mutable_make_camp() = update.make_camp(); break;
+	case Id::FIELD_macro: if (update.has_macro()) *peer->mutable_macro() = update.macro(); break;
+	case Id::FIELD_free_inventory:
+		if (update.has_int32_list()) {
+			peer->clear_free_inventory();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->add_free_inventory(update.int32_list().value(i));
+		}
+		break;
+	default: return false;
+	}
+	return true;
+}
+
+bool StacksForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char* spellNameOrId)
 {
 	if (!spellNameOrId || !spellNameOrId[0])
 		return false;
@@ -395,16 +652,16 @@ bool StacksForPeer(const mq::proto::charinfo::CharInfoPublish& peer, const char*
 	if (!testSpell)
 		return false;
 
-	for (int i = 0; i < peer.buff_size(); i++) {
-		int buffId = peer.buff(i).spell().id();
+	for (int i = 0; i < peer.buff_spells_size(); i++) {
+		int buffId = peer.buff_spells(i).id();
 		if (buffId <= 0) continue;
 		EQ_Spell* buffSpell = GetSpellByID(buffId);
 		if (!buffSpell) continue;
 		if (buffSpell == testSpell || !WillStackWith(testSpell, buffSpell))
 			return false;
 	}
-	for (int i = 0; i < peer.short_buff_size(); i++) {
-		int buffId = peer.short_buff(i).spell().id();
+	for (int i = 0; i < peer.short_buff_spells_size(); i++) {
+		int buffId = peer.short_buff_spells(i).id();
 		if (buffId <= 0) continue;
 		EQ_Spell* buffSpell = GetSpellByID(buffId);
 		if (!buffSpell) continue;
@@ -416,7 +673,7 @@ bool StacksForPeer(const mq::proto::charinfo::CharInfoPublish& peer, const char*
 	return true;
 }
 
-bool StacksPetForPeer(const mq::proto::charinfo::CharInfoPublish& peer, const char* spellNameOrId)
+bool StacksPetForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char* spellNameOrId)
 {
 	if (!spellNameOrId || !spellNameOrId[0])
 		return false;
@@ -424,8 +681,8 @@ bool StacksPetForPeer(const mq::proto::charinfo::CharInfoPublish& peer, const ch
 	if (!testSpell)
 		return false;
 
-	for (int i = 0; i < peer.pet_buff_size(); i++) {
-		int buffId = peer.pet_buff(i).spell().id();
+	for (int i = 0; i < peer.pet_buff_spells_size(); i++) {
+		int buffId = peer.pet_buff_spells(i).id();
 		if (buffId <= 0) continue;
 		EQ_Spell* buffSpell = GetSpellByID(buffId);
 		if (!buffSpell) continue;

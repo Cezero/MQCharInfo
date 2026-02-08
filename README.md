@@ -1,6 +1,6 @@
-# MQCharInfo
+# MQCharinfo
 
-Publishes your character’s state over the Actors (post office) system so other clients can see it, and exposes a Lua module to read peer data. The data shape and API are similar to NetBots-style peer info: vitals, buffs, zone, target, experience, and more. When the plugin loads, it prints `[MQCharInfo]: Initialized. version X.XX` to chat (e.g. 1.10).
+Publishes your character’s state over the Actors (post office) system so other clients can see it, and exposes a Lua module to read peer data. The data shape and API are similar to NetBots-style peer info: vitals, buffs, zone, target, experience, and more.
 
 ## Loading the Lua module
 
@@ -10,7 +10,9 @@ Load the module with:
 local charinfo = require("plugin.charinfo")
 ```
 
-The plugin DLL is **MQcharinfo.dll** (canonical name **charinfo**). Use **`plugin.charinfo`** so the loader finds it. If you see *"does not export CreateLuaModule"*, the plugin may be unloaded.
+The plugin DLL is **MQCharinfo.dll** (canonical name **Charinfo**). Use **`plugin.charinfo`** in Lua; the loader resolves it via case-insensitive lookup. If you see *"does not export CreateLuaModule"*, the plugin may be unloaded.
+
+**Configuration:** For consistent behavior across clients (e.g. postoffice mailbox), list the plugin in your `[Plugins]` section as **MQCharinfo** or **charinfo**, not **MQCharInfo**. This ensures all clients get the same plugin identity and can see each other's data.
 
 ---
 

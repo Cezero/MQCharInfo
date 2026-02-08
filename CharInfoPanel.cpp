@@ -1,10 +1,10 @@
 /*
- * ImGui settings panel for MQCharInfo: plugins/Charinfo.
+ * ImGui settings panel for MQCharinfo: plugins/Charinfo.
  * Read-only peer list and Key/Value data (matches botgui.lua Peers tab).
  */
 
-#include "CharInfoPanel.h"
-#include "CharInfo.h"
+#include "CharinfoPanel.h"
+#include "Charinfo.h"
 #include "charinfo.pb.h"
 #include "mq/Plugin.h"
 
@@ -19,7 +19,7 @@ namespace {
 
 using PeerMap = charinfo::PeerMap;
 
-static void DrawPeerData(const mq::proto::charinfo::CharInfoPublish& peer)
+static void DrawPeerData(const mq::proto::charinfo::CharinfoPublish& peer)
 {
 	// Scalars (key names match LuaModule.cpp)
 	ImGui::TableNextRow();
@@ -386,102 +386,96 @@ static void DrawPeerData(const mq::proto::charinfo::CharInfoPublish& peer)
 		ImGui::TreePop();
 	}
 
-	// Buff
+	// Buff (buff_spells[i] + buff_durations[i])
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
 	if (ImGui::TreeNodeEx("Buff", ImGuiTreeNodeFlags_SpanFullWidth))
 	{
-		for (int i = 0; i < peer.buff_size(); ++i)
+		for (int i = 0; i < peer.buff_spells_size(); ++i)
 		{
-			const auto& e = peer.buff(i);
+			int dur = (i < peer.buff_durations_size()) ? peer.buff_durations(i) : -1;
+			const auto& sp = peer.buff_spells(i);
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("[%d] Duration", i + 1);
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", e.duration());
-			if (e.has_spell())
-			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell Name", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%s", e.spell().name().c_str());
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell ID", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", e.spell().id());
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell Category", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", e.spell().category());
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell Level", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", e.spell().level());
-			}
+			ImGui::Text("%d", dur);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell Name", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", sp.name().c_str());
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell ID", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", sp.id());
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell Category", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", sp.category());
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell Level", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", sp.level());
 		}
 		ImGui::TreePop();
 	}
 
-	// ShortBuff
+	// ShortBuff (short_buff_spells[i] + short_buff_durations[i])
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
 	if (ImGui::TreeNodeEx("ShortBuff", ImGuiTreeNodeFlags_SpanFullWidth))
 	{
-		for (int i = 0; i < peer.short_buff_size(); ++i)
+		for (int i = 0; i < peer.short_buff_spells_size(); ++i)
 		{
-			const auto& e = peer.short_buff(i);
+			int dur = (i < peer.short_buff_durations_size()) ? peer.short_buff_durations(i) : -1;
+			const auto& sp = peer.short_buff_spells(i);
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("[%d] Duration", i + 1);
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", e.duration());
-			if (e.has_spell())
-			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell Name", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%s", e.spell().name().c_str());
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell ID", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", e.spell().id());
-			}
+			ImGui::Text("%d", dur);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell Name", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", sp.name().c_str());
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell ID", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", sp.id());
 		}
 		ImGui::TreePop();
 	}
 
-	// PetBuff
+	// PetBuff (pet_buff_spells[i] + pet_buff_durations[i])
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
 	if (ImGui::TreeNodeEx("PetBuff", ImGuiTreeNodeFlags_SpanFullWidth))
 	{
-		for (int i = 0; i < peer.pet_buff_size(); ++i)
+		for (int i = 0; i < peer.pet_buff_spells_size(); ++i)
 		{
-			const auto& e = peer.pet_buff(i);
+			int dur = (i < peer.pet_buff_durations_size()) ? peer.pet_buff_durations(i) : -1;
+			const auto& sp = peer.pet_buff_spells(i);
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("[%d] Duration", i + 1);
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", e.duration());
-			if (e.has_spell())
-			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell Name", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%s", e.spell().name().c_str());
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("[%d] Spell ID", i + 1);
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", e.spell().id());
-			}
+			ImGui::Text("%d", dur);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell Name", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", sp.name().c_str());
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("[%d] Spell ID", i + 1);
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", sp.id());
 		}
 		ImGui::TreePop();
 	}
@@ -489,7 +483,7 @@ static void DrawPeerData(const mq::proto::charinfo::CharInfoPublish& peer)
 
 } // namespace
 
-void DrawCharInfoPanel()
+void DrawCharinfoPanel()
 {
 	std::vector<std::string> names;
 	{
@@ -513,7 +507,7 @@ void DrawCharInfoPanel()
 
 	for (const std::string& name : names)
 	{
-		mq::proto::charinfo::CharInfoPublish peerCopy;
+		mq::proto::charinfo::CharinfoPublish peerCopy;
 		{
 			std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 			const PeerMap& peers = charinfo::GetPeers();
