@@ -45,7 +45,6 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		{
 			charinfo::CharinfoPeer peer = charinfo::FromPublish(msg.publish());
 			charinfo::GetPeers()[sender] = std::make_shared<charinfo::CharinfoPeer>(std::move(peer));
-			WriteChatf("[MQCharinfo] Received Publish from '%s' (peer count %zu)", sender.c_str(), charinfo::GetPeers().size());
 		}
 		return;
 	}
@@ -84,12 +83,10 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		const std::string& joinedSender = msg.joined().sender();
 		if (pLocalPlayer && joinedSender == pLocalPlayer->DisplayedName)
 			return;
-		WriteChatf("[MQCharinfo] Received Joined from '%s'", joinedSender.empty() ? "(empty)" : joinedSender.c_str());
 
 		mq::proto::charinfo::CharinfoPublish payload;
 		if (!charinfo::BuildPublishPayload(&payload))
 		{
-			WriteChatf("[MQCharinfo] Joined: not in game, skipping reply");
 			return;
 		}
 		mq::proto::charinfo::CharinfoMessage replyMsg;
@@ -117,7 +114,6 @@ static void SendFullPublish(const mq::proto::charinfo::CharinfoPublish& payload)
 
 static void SendJoined(const std::string& sender)
 {
-	WriteChatf("[MQCharinfo] Sending Joined as '%s'", sender.empty() ? "(empty)" : sender.c_str());
 	mq::proto::charinfo::CharinfoMessage msg;
 	msg.set_id(mq::proto::charinfo::CharinfoMessageId::Joined);
 	msg.mutable_joined()->set_sender(sender);
