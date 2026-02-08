@@ -34,6 +34,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CharInfoPeer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Charinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>

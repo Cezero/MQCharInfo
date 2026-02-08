@@ -11,7 +11,7 @@
 #include <eqlib/game/Constants.h>
 
 #include <chrono>
-#include <mutex>
+#include <string>
 
 PreSetup("MQCharinfo");
 PLUGIN_VERSION(charinfo::CHARINFO_VERSION);
@@ -25,6 +25,7 @@ static mq::proto::charinfo::CharinfoPublish s_lastPublished;
 static bool Initialized = false;
 static bool s_initialized = false;
 static bool s_justZoned = false;
+static std::string s_settingsPanelId;
 
 static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 {
@@ -42,8 +43,8 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		const std::string& sender = msg.publish().sender();
 		if (!sender.empty())
 		{
-			std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
-			charinfo::GetPeers()[sender] = msg.publish();
+			charinfo::CharinfoPeer peer = charinfo::FromPublish(msg.publish());
+			charinfo::GetPeers()[sender] = std::make_shared<charinfo::CharinfoPeer>(std::move(peer));
 			WriteChatf("[MQCharinfo] Received Publish from '%s' (peer count %zu)", sender.c_str(), charinfo::GetPeers().size());
 		}
 		return;
@@ -55,12 +56,11 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		const std::string& sender = update.sender();
 		if (sender.empty())
 			return;
-		std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
 		auto it = charinfo::GetPeers().find(sender);
 		if (it == charinfo::GetPeers().end())
 			return;
 		for (int i = 0; i < update.updates_size(); i++)
-			charinfo::ApplyFieldUpdate(update.updates(i), &it->second);
+			charinfo::ApplyFieldUpdate(update.updates(i), it->second.get());
 		return;
 	}
 
@@ -69,8 +69,12 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		const std::string& sender = msg.remove().sender();
 		if (!sender.empty())
 		{
-			std::lock_guard<std::mutex> lock(charinfo::GetPeersMutex());
-			charinfo::GetPeers().erase(sender);
+			auto it = charinfo::GetPeers().find(sender);
+			if (it != charinfo::GetPeers().end())
+			{
+				it->second->set_invalidated(true);
+				charinfo::GetPeers().erase(it);
+			}
 		}
 		return;
 	}
@@ -157,12 +161,13 @@ static void SendRemove()
 PLUGIN_API void InitializePlugin()
 {
 	s_nextPublish = std::chrono::steady_clock::now();
-	AddSettingsPanel("plugins/charinfo", DrawCharinfoPanel);
+	s_settingsPanelId = "plugins/" + mqplugin::ThisPlugin->name;
+	AddSettingsPanel(s_settingsPanelId.c_str(), DrawCharinfoPanel);
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
-	RemoveSettingsPanel("plugins/Charinfo");
+	RemoveSettingsPanel(s_settingsPanelId.c_str());
 	if (s_actorRegistered)
 	{
 		SendRemove();

@@ -98,14 +98,178 @@ std::vector<std::string> BuffStateBitsToStrings(uint32_t detr_bits, uint32_t ben
 }
 
 static PeerMap s_peers;
-static std::mutex s_peersMutex;
 
 PeerMap& GetPeers() {
 	return s_peers;
 }
 
-std::mutex& GetPeersMutex() {
-	return s_peersMutex;
+static void SetZoneDistanceFromLocal(PeerZoneInfo& zone)
+{
+	if (!pLocalPlayer || !pLocalPC) return;
+	if (pLocalPC->zoneId != zone.id) return;
+	if (static_cast<uint16_t>(pLocalPC->instance) != static_cast<uint16_t>(zone.instance_id)) return;
+	float dX = pLocalPlayer->X - zone.x;
+	float dY = pLocalPlayer->Y - zone.y;
+	float dZ = pLocalPlayer->Z - zone.z;
+	zone.distance = static_cast<double>(std::sqrtf(dX * dX + dY * dY + dZ * dZ));
+}
+
+CharinfoPeer FromPublish(const mq::proto::charinfo::CharinfoPublish& pub)
+{
+	CharinfoPeer p;
+	p.name = pub.name();
+	p.id = pub.id();
+	p.level = pub.level();
+	p.pct_hps = pub.pct_hps();
+	p.pct_mana = pub.pct_mana();
+	p.target_hp = pub.target_hp();
+	p.free_buff_slots = pub.free_buff_slots();
+	p.detrimentals = pub.detrimentals();
+	p.count_poison = pub.count_poison();
+	p.count_disease = pub.count_disease();
+	p.count_curse = pub.count_curse();
+	p.count_corruption = pub.count_corruption();
+	p.pet_hp = pub.pet_hp();
+	p.max_endurance = pub.max_endurance();
+	p.current_hp = pub.current_hp();
+	p.max_hp = pub.max_hp();
+	p.current_mana = pub.current_mana();
+	p.max_mana = pub.max_mana();
+	p.current_endurance = pub.current_endurance();
+	p.pct_endurance = pub.pct_endurance();
+	p.pet_id = pub.pet_id();
+	p.pet_affinity = pub.pet_affinity();
+	p.no_cure = pub.no_cure();
+	p.life_drain = pub.life_drain();
+	p.mana_drain = pub.mana_drain();
+	p.endu_drain = pub.endu_drain();
+	p.state_bits = pub.state_bits();
+	p.detr_state_bits = pub.detr_state_bits();
+	p.bene_state_bits = pub.bene_state_bits();
+	p.casting_spell_id = pub.casting_spell_id();
+	p.combat_state = pub.combat_state();
+	p.version = pub.version();
+
+	p.class_info.name = pub.class_info().name();
+	p.class_info.short_name = pub.class_info().short_name();
+	p.class_info.id = pub.class_info().id();
+
+	p.target.name = pub.target().name();
+	p.target.id = pub.target().id();
+
+	p.zone.name = pub.zone().name();
+	p.zone.short_name = pub.zone().short_name();
+	p.zone.id = pub.zone().id();
+	p.zone.instance_id = pub.zone().instance_id();
+	p.zone.x = pub.zone().x();
+	p.zone.y = pub.zone().y();
+	p.zone.z = pub.zone().z();
+	p.zone.heading = pub.zone().heading();
+	p.zone.distance = -1.0;
+	SetZoneDistanceFromLocal(p.zone);
+
+	const int buffSize = pub.buff_spells_size();
+	const int durSize = pub.buff_durations_size();
+	p.buff.clear();
+	p.buff.reserve(static_cast<size_t>(buffSize));
+	for (int i = 0; i < buffSize; i++) {
+		PeerBuffEntry e;
+		e.spell.name = pub.buff_spells(i).name();
+		e.spell.id = pub.buff_spells(i).id();
+		e.spell.category = pub.buff_spells(i).category();
+		e.spell.level = pub.buff_spells(i).level();
+		e.duration = (i < durSize) ? pub.buff_durations(i) : -1;
+		p.buff.push_back(std::move(e));
+	}
+	const int shortSpellSize = pub.short_buff_spells_size();
+	const int shortDurSize = pub.short_buff_durations_size();
+	p.short_buff.clear();
+	p.short_buff.reserve(static_cast<size_t>(shortSpellSize));
+	for (int i = 0; i < shortSpellSize; i++) {
+		PeerBuffEntry e;
+		e.spell.name = pub.short_buff_spells(i).name();
+		e.spell.id = pub.short_buff_spells(i).id();
+		e.spell.category = pub.short_buff_spells(i).category();
+		e.spell.level = pub.short_buff_spells(i).level();
+		e.duration = (i < shortDurSize) ? pub.short_buff_durations(i) : -1;
+		p.short_buff.push_back(std::move(e));
+	}
+	const int petSpellSize = pub.pet_buff_spells_size();
+	const int petDurSize = pub.pet_buff_durations_size();
+	p.pet_buff.clear();
+	p.pet_buff.reserve(static_cast<size_t>(petSpellSize));
+	for (int i = 0; i < petSpellSize; i++) {
+		PeerBuffEntry e;
+		e.spell.name = pub.pet_buff_spells(i).name();
+		e.spell.id = pub.pet_buff_spells(i).id();
+		e.spell.category = pub.pet_buff_spells(i).category();
+		e.spell.level = pub.pet_buff_spells(i).level();
+		e.duration = (i < petDurSize) ? pub.pet_buff_durations(i) : -1;
+		p.pet_buff.push_back(std::move(e));
+	}
+
+	p.state = StateBitsToStrings(pub.state_bits());
+	p.buff_state = BuffStateBitsToStrings(pub.detr_state_bits(), pub.bene_state_bits());
+
+	PcProfile* profile = GetPcProfile();
+	p.gems.clear();
+	p.gems.reserve(static_cast<size_t>(pub.gem_size()));
+	for (int i = 0; i < pub.gem_size(); i++) {
+		PeerGemEntry ge;
+		ge.id = pub.gem(i);
+		if (EQ_Spell* spell = GetSpellByID(pub.gem(i))) {
+			ge.name = spell->Name[0] ? spell->Name : "";
+			ge.category = spell->Category;
+			ge.level = profile ? static_cast<int32_t>(spell->GetSpellLevelNeeded(profile->Class)) : 0;
+		} else {
+			ge.name = "";
+			ge.category = 0;
+			ge.level = 0;
+		}
+		p.gems.push_back(std::move(ge));
+	}
+
+	p.free_inventory.clear();
+	p.free_inventory.reserve(static_cast<size_t>(pub.free_inventory_size()));
+	for (int i = 0; i < pub.free_inventory_size(); i++)
+		p.free_inventory.push_back(pub.free_inventory(i));
+
+	if (pub.has_experience()) {
+		PeerExperienceInfo ex;
+		ex.pct_exp = pub.experience().pct_exp();
+		ex.pct_aa_exp = pub.experience().pct_aa_exp();
+		ex.pct_group_leader_exp = pub.experience().pct_group_leader_exp();
+		ex.total_aa = pub.experience().total_aa();
+		ex.aa_spent = pub.experience().aa_spent();
+		ex.aa_unused = pub.experience().aa_unused();
+		ex.aa_assigned = pub.experience().aa_assigned();
+		p.has_experience = true;
+		p.experience = ex;
+	} else {
+		p.has_experience = false;
+	}
+	if (pub.has_make_camp()) {
+		PeerMakeCampInfo mc;
+		mc.status = pub.make_camp().status();
+		mc.x = pub.make_camp().x();
+		mc.y = pub.make_camp().y();
+		mc.radius = pub.make_camp().radius();
+		mc.distance = pub.make_camp().distance();
+		p.has_make_camp = true;
+		p.make_camp = mc;
+	} else {
+		p.has_make_camp = false;
+	}
+	if (pub.has_macro()) {
+		PeerMacroInfo mac;
+		mac.macro_state = pub.macro().macro_state();
+		mac.macro_name = pub.macro().macro_name();
+		p.has_macro = true;
+		p.macro = mac;
+	} else {
+		p.has_macro = false;
+	}
+	return p;
 }
 
 static void AddBuffEntry(mq::proto::charinfo::CharinfoPublish* msg,
@@ -644,7 +808,213 @@ bool ApplyFieldUpdate(const mq::proto::charinfo::FieldUpdate& update,
 	return true;
 }
 
-bool StacksForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char* spellNameOrId)
+bool ApplyFieldUpdate(const mq::proto::charinfo::FieldUpdate& update, CharinfoPeer* peer)
+{
+	using Id = mq::proto::charinfo::CharinfoFieldId;
+	switch (update.field_id()) {
+	case Id::FIELD_sender: if (update.has_str()) peer->name = update.str(); break;
+	case Id::FIELD_name: if (update.has_str()) peer->name = update.str(); break;
+	case Id::FIELD_id: if (update.has_i32()) peer->id = update.i32(); break;
+	case Id::FIELD_level: if (update.has_i32()) peer->level = update.i32(); break;
+	case Id::FIELD_class_info:
+		if (update.has_class_info()) {
+			peer->class_info.name = update.class_info().name();
+			peer->class_info.short_name = update.class_info().short_name();
+			peer->class_info.id = update.class_info().id();
+		}
+		break;
+	case Id::FIELD_pct_hps: if (update.has_i32()) peer->pct_hps = update.i32(); break;
+	case Id::FIELD_pct_mana: if (update.has_i32()) peer->pct_mana = update.i32(); break;
+	case Id::FIELD_target:
+		if (update.has_target()) {
+			peer->target.name = update.target().name();
+			peer->target.id = update.target().id();
+		}
+		break;
+	case Id::FIELD_target_hp: if (update.has_i32()) peer->target_hp = update.i32(); break;
+	case Id::FIELD_zone:
+		if (update.has_zone()) {
+			peer->zone.name = update.zone().name();
+			peer->zone.short_name = update.zone().short_name();
+			peer->zone.id = update.zone().id();
+			peer->zone.instance_id = update.zone().instance_id();
+			peer->zone.x = update.zone().x();
+			peer->zone.y = update.zone().y();
+			peer->zone.z = update.zone().z();
+			peer->zone.heading = update.zone().heading();
+			peer->zone.distance = -1.0;
+			SetZoneDistanceFromLocal(peer->zone);
+		}
+		break;
+	case Id::FIELD_buff_spells:
+		if (update.has_spell_list()) {
+			peer->buff.clear();
+			const int n = update.spell_list().spell_size();
+			for (int i = 0; i < n; i++) {
+				const auto& sp = update.spell_list().spell(i);
+				PeerBuffEntry e;
+				e.spell.name = sp.name();
+				e.spell.id = sp.id();
+				e.spell.category = sp.category();
+				e.spell.level = sp.level();
+				e.duration = -1;
+				peer->buff.push_back(std::move(e));
+			}
+		}
+		break;
+	case Id::FIELD_buff_durations:
+		if (update.has_int32_list()) {
+			const auto& list = update.int32_list();
+			for (int i = 0; i < list.value_size() && i < static_cast<int>(peer->buff.size()); i++)
+				peer->buff[static_cast<size_t>(i)].duration = list.value(i);
+		}
+		break;
+	case Id::FIELD_short_buff_spells:
+		if (update.has_spell_list()) {
+			peer->short_buff.clear();
+			const int n = update.spell_list().spell_size();
+			for (int i = 0; i < n; i++) {
+				const auto& sp = update.spell_list().spell(i);
+				PeerBuffEntry e;
+				e.spell.name = sp.name();
+				e.spell.id = sp.id();
+				e.spell.category = sp.category();
+				e.spell.level = sp.level();
+				e.duration = -1;
+				peer->short_buff.push_back(std::move(e));
+			}
+		}
+		break;
+	case Id::FIELD_short_buff_durations:
+		if (update.has_int32_list()) {
+			const auto& list = update.int32_list();
+			for (int i = 0; i < list.value_size() && i < static_cast<int>(peer->short_buff.size()); i++)
+				peer->short_buff[static_cast<size_t>(i)].duration = list.value(i);
+		}
+		break;
+	case Id::FIELD_pet_buff_spells:
+		if (update.has_spell_list()) {
+			peer->pet_buff.clear();
+			const int n = update.spell_list().spell_size();
+			for (int i = 0; i < n; i++) {
+				const auto& sp = update.spell_list().spell(i);
+				PeerBuffEntry e;
+				e.spell.name = sp.name();
+				e.spell.id = sp.id();
+				e.spell.category = sp.category();
+				e.spell.level = sp.level();
+				e.duration = -1;
+				peer->pet_buff.push_back(std::move(e));
+			}
+		}
+		break;
+	case Id::FIELD_pet_buff_durations:
+		if (update.has_int32_list()) {
+			const auto& list = update.int32_list();
+			for (int i = 0; i < list.value_size() && i < static_cast<int>(peer->pet_buff.size()); i++)
+				peer->pet_buff[static_cast<size_t>(i)].duration = list.value(i);
+		}
+		break;
+	case Id::FIELD_free_buff_slots: if (update.has_i32()) peer->free_buff_slots = update.i32(); break;
+	case Id::FIELD_detrimentals: if (update.has_i32()) peer->detrimentals = update.i32(); break;
+	case Id::FIELD_count_poison: if (update.has_i32()) peer->count_poison = update.i32(); break;
+	case Id::FIELD_count_disease: if (update.has_i32()) peer->count_disease = update.i32(); break;
+	case Id::FIELD_count_curse: if (update.has_i32()) peer->count_curse = update.i32(); break;
+	case Id::FIELD_count_corruption: if (update.has_i32()) peer->count_corruption = update.i32(); break;
+	case Id::FIELD_pet_hp: if (update.has_i32()) peer->pet_hp = update.i32(); break;
+	case Id::FIELD_max_endurance: if (update.has_i32()) peer->max_endurance = update.i32(); break;
+	case Id::FIELD_current_hp: if (update.has_i32()) peer->current_hp = update.i32(); break;
+	case Id::FIELD_max_hp: if (update.has_i32()) peer->max_hp = update.i32(); break;
+	case Id::FIELD_current_mana: if (update.has_i32()) peer->current_mana = update.i32(); break;
+	case Id::FIELD_max_mana: if (update.has_i32()) peer->max_mana = update.i32(); break;
+	case Id::FIELD_current_endurance: if (update.has_i32()) peer->current_endurance = update.i32(); break;
+	case Id::FIELD_pct_endurance: if (update.has_i32()) peer->pct_endurance = update.i32(); break;
+	case Id::FIELD_pet_id: if (update.has_i32()) peer->pet_id = update.i32(); break;
+	case Id::FIELD_pet_affinity: if (update.has_b()) peer->pet_affinity = update.b(); break;
+	case Id::FIELD_no_cure: if (update.has_i64()) peer->no_cure = update.i64(); break;
+	case Id::FIELD_life_drain: if (update.has_i64()) peer->life_drain = update.i64(); break;
+	case Id::FIELD_mana_drain: if (update.has_i64()) peer->mana_drain = update.i64(); break;
+	case Id::FIELD_endu_drain: if (update.has_i64()) peer->endu_drain = update.i64(); break;
+	case Id::FIELD_state_bits:
+		if (update.has_bits()) {
+			peer->state_bits = update.bits();
+			peer->state = StateBitsToStrings(update.bits());
+		}
+		break;
+	case Id::FIELD_detr_state_bits: if (update.has_bits()) { peer->detr_state_bits = update.bits(); peer->buff_state = BuffStateBitsToStrings(peer->detr_state_bits, peer->bene_state_bits); } break;
+	case Id::FIELD_bene_state_bits: if (update.has_bits()) { peer->bene_state_bits = update.bits(); peer->buff_state = BuffStateBitsToStrings(peer->detr_state_bits, peer->bene_state_bits); } break;
+	case Id::FIELD_casting_spell_id: if (update.has_i32()) peer->casting_spell_id = update.i32(); break;
+	case Id::FIELD_combat_state: if (update.has_i32()) peer->combat_state = update.i32(); break;
+	case Id::FIELD_gem:
+		if (update.has_int32_list()) {
+			peer->gems.clear();
+			PcProfile* profile = GetPcProfile();
+			for (int i = 0; i < update.int32_list().value_size(); i++) {
+				int32_t spellId = update.int32_list().value(i);
+				PeerGemEntry ge;
+				ge.id = spellId;
+				if (EQ_Spell* spell = GetSpellByID(spellId)) {
+					ge.name = spell->Name[0] ? spell->Name : "";
+					ge.category = spell->Category;
+					ge.level = profile ? static_cast<int32_t>(spell->GetSpellLevelNeeded(profile->Class)) : 0;
+				} else {
+					ge.name = "";
+					ge.category = 0;
+					ge.level = 0;
+				}
+				peer->gems.push_back(std::move(ge));
+			}
+		}
+		break;
+	case Id::FIELD_version: if (update.has_f()) peer->version = update.f(); break;
+	case Id::FIELD_experience:
+		if (update.has_experience()) {
+			PeerExperienceInfo ex;
+			ex.pct_exp = update.experience().pct_exp();
+			ex.pct_aa_exp = update.experience().pct_aa_exp();
+			ex.pct_group_leader_exp = update.experience().pct_group_leader_exp();
+			ex.total_aa = update.experience().total_aa();
+			ex.aa_spent = update.experience().aa_spent();
+			ex.aa_unused = update.experience().aa_unused();
+			ex.aa_assigned = update.experience().aa_assigned();
+			peer->has_experience = true;
+			peer->experience = ex;
+		}
+		break;
+	case Id::FIELD_make_camp:
+		if (update.has_make_camp()) {
+			PeerMakeCampInfo mc;
+			mc.status = update.make_camp().status();
+			mc.x = update.make_camp().x();
+			mc.y = update.make_camp().y();
+			mc.radius = update.make_camp().radius();
+			mc.distance = update.make_camp().distance();
+			peer->has_make_camp = true;
+			peer->make_camp = mc;
+		}
+		break;
+	case Id::FIELD_macro:
+		if (update.has_macro()) {
+			PeerMacroInfo mac;
+			mac.macro_state = update.macro().macro_state();
+			mac.macro_name = update.macro().macro_name();
+			peer->has_macro = true;
+			peer->macro = mac;
+		}
+		break;
+	case Id::FIELD_free_inventory:
+		if (update.has_int32_list()) {
+			peer->free_inventory.clear();
+			for (int i = 0; i < update.int32_list().value_size(); i++)
+				peer->free_inventory.push_back(update.int32_list().value(i));
+		}
+		break;
+	default: return false;
+	}
+	return true;
+}
+
+bool StacksForPeer(const CharinfoPeer& peer, const char* spellNameOrId)
 {
 	if (!spellNameOrId || !spellNameOrId[0])
 		return false;
@@ -652,18 +1022,16 @@ bool StacksForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char*
 	if (!testSpell)
 		return false;
 
-	for (int i = 0; i < peer.buff_spells_size(); i++) {
-		int buffId = peer.buff_spells(i).id();
-		if (buffId <= 0) continue;
-		EQ_Spell* buffSpell = GetSpellByID(buffId);
+	for (const auto& entry : peer.buff) {
+		if (entry.spell.id <= 0) continue;
+		EQ_Spell* buffSpell = GetSpellByID(entry.spell.id);
 		if (!buffSpell) continue;
 		if (buffSpell == testSpell || !WillStackWith(testSpell, buffSpell))
 			return false;
 	}
-	for (int i = 0; i < peer.short_buff_spells_size(); i++) {
-		int buffId = peer.short_buff_spells(i).id();
-		if (buffId <= 0) continue;
-		EQ_Spell* buffSpell = GetSpellByID(buffId);
+	for (const auto& entry : peer.short_buff) {
+		if (entry.spell.id <= 0) continue;
+		EQ_Spell* buffSpell = GetSpellByID(entry.spell.id);
 		if (!buffSpell) continue;
 		if (!IsBardSong(buffSpell) && !(IsSPAEffect(testSpell, SPA_CHANGE_FORM) && !testSpell->DurationWindow)) {
 			if (buffSpell == testSpell || !WillStackWith(testSpell, buffSpell))
@@ -673,7 +1041,7 @@ bool StacksForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char*
 	return true;
 }
 
-bool StacksPetForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const char* spellNameOrId)
+bool StacksPetForPeer(const CharinfoPeer& peer, const char* spellNameOrId)
 {
 	if (!spellNameOrId || !spellNameOrId[0])
 		return false;
@@ -681,10 +1049,9 @@ bool StacksPetForPeer(const mq::proto::charinfo::CharinfoPublish& peer, const ch
 	if (!testSpell)
 		return false;
 
-	for (int i = 0; i < peer.pet_buff_spells_size(); i++) {
-		int buffId = peer.pet_buff_spells(i).id();
-		if (buffId <= 0) continue;
-		EQ_Spell* buffSpell = GetSpellByID(buffId);
+	for (const auto& entry : peer.pet_buff) {
+		if (entry.spell.id <= 0) continue;
+		EQ_Spell* buffSpell = GetSpellByID(entry.spell.id);
 		if (!buffSpell) continue;
 		if (buffSpell == testSpell || !WillStackWith(testSpell, buffSpell))
 			return false;

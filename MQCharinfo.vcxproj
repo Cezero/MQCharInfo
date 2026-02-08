@@ -127,6 +127,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CharInfoPeer.h" />
     <ClInclude Include="Charinfo.h" />
     <ClInclude Include="CharinfoPanel.h" />
     <ClInclude Include="resource.h" />

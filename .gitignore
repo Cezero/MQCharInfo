@@ -1,3 +1,4 @@
 examples/
 *.pb.cc
 *.pb.h
+*.vcxproj.user
