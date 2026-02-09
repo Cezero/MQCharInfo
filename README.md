@@ -12,6 +12,8 @@ local charinfo = require("plugin.charinfo")
 
 The plugin DLL is **MQCharinfo.dll** (canonical name **Charinfo**). Use **`plugin.charinfo`** in Lua; the loader resolves it via case-insensitive lookup. If you see *"does not export CreateLuaModule"*, the plugin may be unloaded.
 
+You can instead use **`require("mqcharinfo")`** for the same API with EmmyLua annotations (IDE completion and hover docs). Copy the **mqcharinfo** folder from the plugin directory into your MacroQuest install's **lua/** folder (e.g. `MacroQuest/lua/mqcharinfo/`) so `require("mqcharinfo")` is found.
+
 **Configuration:** For consistent behavior across clients (e.g. postoffice mailbox), list the plugin in your `[Plugins]` section as **MQCharinfo** or **charinfo**, not **MQCharInfo**. This ensures all clients get the same plugin identity and can see each other's data.
 
 ---
@@ -23,10 +25,9 @@ The plugin DLL is **MQCharinfo.dll** (canonical name **Charinfo**). Use **`plugi
 | `charinfo.GetInfo(name)` | Returns the peer table for character `name`, or `nil` if not found. |
 | `charinfo.GetPeers()` | Returns a sorted array of peer character names. |
 | `charinfo.GetPeerCnt()` | Returns the number of peers. |
-| `charinfo.GetPeer(name)` | Same as `GetInfo(name)` but returns a **proxy** table that also has `Stacks(spell)` and `StacksPet(spell)` (see below). |
-| `charinfo(name)` | Same as `GetPeer(name)` (module is callable). |
+| `charinfo(name)` | Same as `GetInfo(name)` (module is callable). |
 
-**Stacks / StacksPet** (only on the table returned by `GetPeer(name)`):
+**Stacks / StacksPet** (on the table returned by `GetInfo(name)` and `charinfo(name)`):
 
 These are methods and must be called with a colon: use `peer:Stacks(spell)` and `peer:StacksPet(spell)`, not `peer.Stacks(spell)`.
 
@@ -151,13 +152,12 @@ local charinfo = require("plugin.charinfo")
 
 local names = charinfo.GetPeers()
 for i = 1, #names do
-    local peer = charinfo.GetPeer(names[i])
+    local peer = charinfo.GetInfo(names[i])
     if peer then
         print(peer.Name, "HP:", peer.PctHPs, "Zone:", peer.Zone.ShortName)
         if peer.Zone.Distance then
             print("  Distance:", peer.Zone.Distance)
         end
-        -- Check if a spell would stack on this peer (requires GetPeer, not GetInfo)
         if peer.Stacks and peer:Stacks("Clarity II") then
             print("  Clarity II would stack")
         end

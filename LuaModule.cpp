@@ -1,6 +1,6 @@
 /*
  * Lua module for MQCharinfo: require("plugin.charinfo")
- * Exposes GetInfo, GetPeers, GetPeerCnt, GetPeer (with Stacks/StacksPet).
+ * Exposes GetInfo, GetPeers, GetPeerCnt. Peer table from GetInfo includes Stacks/StacksPet.
  * Peer data is bound as usertypes (CharinfoPeer) so Lua reads from C++ without table copies.
  *
  * IMPORTANT (do not change without testing require("plugin.charinfo") and the loader):
@@ -380,15 +380,7 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 		return static_cast<int>(charinfo::GetPeers().size());
 	};
 
-	module["GetPeer"] = [](sol::this_state L, const std::string &name) -> sol::object
-	{
-		auto it = charinfo::GetPeers().find(name);
-		if (it == charinfo::GetPeers().end())
-			return sol::lua_nil;
-		return sol::make_object(L, CharinfoPeerRef(it->second));
-	};
-
-	// Callable: Charinfo(name) == GetPeer(name).
+	// Callable: charinfo(name) == GetInfo(name).
 	module[sol::metatable_key] = L.create_table_with(
 		sol::meta_function::call, [](sol::this_state L, sol::variadic_args args) -> sol::object
 		{
@@ -396,7 +388,7 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 				return sol::lua_nil;
 			sol::table self = args.get<sol::table>(0);
 			std::string name = args.get<std::string>(1);
-			return self["GetPeer"].get<sol::function>()(name); });
+			return self["GetInfo"].get<sol::function>()(name); });
 
 	return sol::make_object(L, module);
 }

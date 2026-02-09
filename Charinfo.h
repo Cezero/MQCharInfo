@@ -10,7 +10,7 @@
 namespace charinfo {
 
 // Version constant; bump when making breaking or notable changes.
-constexpr float CHARINFO_VERSION = 1.4f;
+constexpr float CHARINFO_VERSION = 1.5f;
 
 // In-memory peer state keyed by sender (character) name.
 using PeerMap = std::unordered_map<std::string, std::shared_ptr<CharinfoPeer>>;

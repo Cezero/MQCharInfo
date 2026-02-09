@@ -1,6 +1,6 @@
 /*
  * MQCharinfo - Character info over Actors, Lua module API
- * NetBots-style peer data via post office; require("plugin.charinfo") for GetInfo/GetPeers/GetPeer.
+ * NetBots-style peer data via post office; require("plugin.charinfo") for GetPeers.
  */
 
 #include "mq/Plugin.h"
