@@ -184,8 +184,7 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// Class
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("Class", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
+	if (ImGui::TreeNodeEx("Class", ImGuiTreeNodeFlags_SpanFullWidth)) {
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 		ImGui::Text("Name");
@@ -207,8 +206,7 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// Target
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("Target", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
+	if (ImGui::TreeNodeEx("Target", ImGuiTreeNodeFlags_SpanFullWidth)) {
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 		ImGui::Text("Name");
@@ -225,8 +223,7 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// Zone
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("Zone", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
+	if (ImGui::TreeNodeEx("Zone", ImGuiTreeNodeFlags_SpanFullWidth)) {
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 		ImGui::Text("Name");
@@ -383,10 +380,8 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// Buff
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("Buff", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
-		for (size_t i = 0; i < peer.buff.size(); ++i)
-		{
+	if (ImGui::TreeNodeEx("Buff", ImGuiTreeNodeFlags_SpanFullWidth)) {
+		for (size_t i = 0; i < peer.buff.size(); ++i) {
 			const auto& entry = peer.buff[i];
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -420,10 +415,8 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// ShortBuff
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("ShortBuff", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
-		for (size_t i = 0; i < peer.short_buff.size(); ++i)
-		{
+	if (ImGui::TreeNodeEx("ShortBuff", ImGuiTreeNodeFlags_SpanFullWidth)) {
+		for (size_t i = 0; i < peer.short_buff.size(); ++i) {
 			const auto& entry = peer.short_buff[i];
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -447,10 +440,8 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 	// PetBuff
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
-	if (ImGui::TreeNodeEx("PetBuff", ImGuiTreeNodeFlags_SpanFullWidth))
-	{
-		for (size_t i = 0; i < peer.pet_buff.size(); ++i)
-		{
+	if (ImGui::TreeNodeEx("PetBuff", ImGuiTreeNodeFlags_SpanFullWidth)) {
+		for (size_t i = 0; i < peer.pet_buff.size(); ++i) {
 			const auto& entry = peer.pet_buff[i];
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -482,8 +473,7 @@ void DrawCharinfoPanel()
 	for (const auto& p : peers)
 		names.push_back(p.first);
 
-	if (names.empty())
-	{
+	if (names.empty()) {
 		ImGui::Text("No peers (no character data received yet).");
 		return;
 	}
@@ -493,8 +483,7 @@ void DrawCharinfoPanel()
 	const ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter
 		| ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchSame;
 
-	for (const std::string& name : names)
-	{
+	for (const std::string& name : names) {
 		const PeerMap& peers = charinfo::GetPeers();
 		auto it = peers.find(name);
 		if (it == peers.end())
@@ -505,11 +494,9 @@ void DrawCharinfoPanel()
 		if (peerPtr->invalidated())
 			continue;
 		ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
-		if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_SpanFullWidth))
-		{
+		if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_SpanFullWidth)) {
 			std::string tableId = "peers_table_" + name;
-			if (ImGui::BeginTable(tableId.c_str(), 2, tableFlags, ImVec2(-1, 0)))
-			{
+			if (ImGui::BeginTable(tableId.c_str(), 2, tableFlags, ImVec2(-1, 0))) {
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_None, 0.4f);
 				ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_None, 0.6f);

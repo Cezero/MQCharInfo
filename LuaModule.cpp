@@ -26,13 +26,34 @@ using namespace mq::proto::charinfo;
 
 namespace {
 
-// If peer is invalidated, return nil; otherwise run fn(peer) and return its result.
-template <typename F>
-sol::object GuardPeer(sol::this_state L, const charinfo::CharinfoPeer& peer, F fn)
+// Helper for CharinfoPeer field properties: nil if invalidated, otherwise returns the field value.
+template <typename MemberT>
+auto MakePeerFieldProperty(MemberT charinfo::CharinfoPeer::* member)
 {
-	if (peer.invalidated())
-		return sol::lua_nil;
-	return fn(peer);
+	return sol::property([member](const charinfo::CharinfoPeer& peer, sol::this_state L) {
+		if (peer.invalidated())
+			return sol::make_object(L, sol::lua_nil);
+		return sol::make_object(L, peer.*member);
+	});
+}
+
+// Helper for CharinfoPeer container properties exposed as Lua arrays (1-based indices).
+template <typename ContainerMember>
+auto MakePeerTableProperty(ContainerMember charinfo::CharinfoPeer::* member)
+{
+	return sol::property([member](const charinfo::CharinfoPeer& peer, sol::this_state L) {
+		if (peer.invalidated())
+			return sol::make_object(L, sol::lua_nil);
+
+		sol::state_view sv(L);
+		sol::table arr = sv.create_table();
+
+		const auto& container = peer.*member;
+		for (size_t i = 0; i < container.size(); ++i)
+			arr[i + 1] = container[i];
+
+		return sol::make_object(L, arr);
+	});
 }
 
 static void RegisterCharInfoUsertypes(sol::state_view L)
@@ -83,8 +104,7 @@ static void RegisterCharInfoUsertypes(sol::state_view L)
 		"Y", &charinfo::PeerZoneInfo::y,
 		"Z", &charinfo::PeerZoneInfo::z,
 		"Heading", &charinfo::PeerZoneInfo::heading,
-		"Distance", sol::property([](const charinfo::PeerZoneInfo &z, sol::this_state L)
-									{
+		"Distance", sol::property([](const charinfo::PeerZoneInfo &z, sol::this_state L) {
 			if (z.distance < 0)
 				return sol::make_object(L, sol::lua_nil);
 			return sol::make_object(L, z.distance); }),
@@ -137,202 +157,80 @@ static void RegisterCharInfoUsertypes(sol::state_view L)
 	// CharinfoPeer: usertype bound directly to the underlying peer object.
 	L.new_usertype<charinfo::CharinfoPeer>(
 		"CharinfoPeer", sol::no_constructor,
-
-		"Name", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.name); }); }),
-		"ID", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-							{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-												{ return sol::make_object(L, peer.id); }); }),
-		"Level", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.level); }); }),
-		"PctHPs", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.pct_hps); }); }),
-		"PctMana", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.pct_mana); }); }),
-		"TargetHP", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.target_hp); }); }),
-		"FreeBuffSlots", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.free_buff_slots); }); }),
-		"Detrimentals", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.detrimentals); }); }),
-		"CountPoison", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.count_poison); }); }),
-		"CountDisease", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.count_disease); }); }),
-		"CountCurse", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.count_curse); }); }),
-		"CountCorruption", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-											{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.count_corruption); }); }),
-		"PetHP", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.pet_hp); }); }),
-		"MaxEndurance", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.max_endurance); }); }),
-		"CurrentHP", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.current_hp); }); }),
-		"MaxHP", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.max_hp); }); }),
-		"CurrentMana", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.current_mana); }); }),
-		"MaxMana", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.max_mana); }); }),
-		"CurrentEndurance", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-											{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-																{ return sol::make_object(L, peer.current_endurance); }); }),
-		"PctEndurance", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.pct_endurance); }); }),
-		"PetID", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.pet_id); }); }),
-		"PetAffinity", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.pet_affinity); }); }),
-		"NoCure", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.no_cure); }); }),
-		"LifeDrain", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.life_drain); }); }),
-		"ManaDrain", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.mana_drain); }); }),
-		"EnduDrain", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.endu_drain); }); }),
-		"Version", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.version); }); }),
-		"CombatState", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-														{ return sol::make_object(L, peer.combat_state); }); }),
-		"CastingSpellID", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-															{ return sol::make_object(L, peer.casting_spell_id); }); }),
-
-		"Class", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.class_info); }); }),
-		"Target", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.target); }); }),
-		"Zone", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{ return GuardPeer(L, peer, [L](const charinfo::CharinfoPeer &peer)
-													{ return sol::make_object(L, peer.zone); }); }),
-
-		"State", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table t = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.state.size(); i++)
-			t[i + 1] = peer.state[i];
-		return sol::make_object(L, t); }),
-		"BuffState", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table t = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.buff_state.size(); i++)
-			t[i + 1] = peer.buff_state[i];
-		return sol::make_object(L, t); }),
-
-		"Buff", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table arr = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.buff.size(); i++)
-			arr[i + 1] = peer.buff[i];
-		return sol::make_object(L, arr); }),
-		"ShortBuff", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table arr = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.short_buff.size(); i++)
-			arr[i + 1] = peer.short_buff[i];
-		return sol::make_object(L, arr); }),
-		"PetBuff", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table arr = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.pet_buff.size(); i++)
-			arr[i + 1] = peer.pet_buff[i];
-		return sol::make_object(L, arr); }),
-
-		"Gems", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table arr = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.gems.size(); i++)
-			arr[i + 1] = peer.gems[i];
-		return sol::make_object(L, arr); }),
-		"FreeInventory", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-										{
-		if (peer.invalidated()) return sol::make_object(L, sol::lua_nil);
-		sol::table arr = sol::state_view(L).create_table();
-		for (size_t i = 0; i < peer.free_inventory.size(); i++)
-			arr[i + 1] = peer.free_inventory[i];
-		return sol::make_object(L, arr); }),
-
-		"Experience", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{
-		if (peer.invalidated() || !peer.has_experience) return sol::make_object(L, sol::lua_nil);
-		return sol::make_object(L, peer.experience); }),
-		"MakeCamp", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-									{
-		if (peer.invalidated() || !peer.has_make_camp) return sol::make_object(L, sol::lua_nil);
-		return sol::make_object(L, peer.make_camp); }),
-		"Macro", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L)
-								{
-		if (peer.invalidated() || !peer.has_macro) return sol::make_object(L, sol::lua_nil);
-		return sol::make_object(L, peer.macro); }),
-
+		"Name", MakePeerFieldProperty(&charinfo::CharinfoPeer::name),
+		"ID", MakePeerFieldProperty(&charinfo::CharinfoPeer::id),
+		"Level", MakePeerFieldProperty(&charinfo::CharinfoPeer::level),
+		"PctHPs", MakePeerFieldProperty(&charinfo::CharinfoPeer::pct_hps),
+		"PctMana", MakePeerFieldProperty(&charinfo::CharinfoPeer::pct_mana),
+		"TargetHP", MakePeerFieldProperty(&charinfo::CharinfoPeer::target_hp),
+		"FreeBuffSlots", MakePeerFieldProperty(&charinfo::CharinfoPeer::free_buff_slots),
+		"Detrimentals", MakePeerFieldProperty(&charinfo::CharinfoPeer::detrimentals),
+		"CountPoison", MakePeerFieldProperty(&charinfo::CharinfoPeer::count_poison),
+		"CountDisease", MakePeerFieldProperty(&charinfo::CharinfoPeer::count_disease),
+		"CountCurse", MakePeerFieldProperty(&charinfo::CharinfoPeer::count_curse),
+		"CountCorruption", MakePeerFieldProperty(&charinfo::CharinfoPeer::count_corruption),
+		"PetHP", MakePeerFieldProperty(&charinfo::CharinfoPeer::pet_hp),
+		"MaxEndurance", MakePeerFieldProperty(&charinfo::CharinfoPeer::max_endurance),
+		"CurrentHP", MakePeerFieldProperty(&charinfo::CharinfoPeer::current_hp),
+		"MaxHP", MakePeerFieldProperty(&charinfo::CharinfoPeer::max_hp),
+		"CurrentMana", MakePeerFieldProperty(&charinfo::CharinfoPeer::current_mana),
+		"MaxMana", MakePeerFieldProperty(&charinfo::CharinfoPeer::max_mana),
+		"CurrentEndurance", MakePeerFieldProperty(&charinfo::CharinfoPeer::current_endurance),
+		"PctEndurance", MakePeerFieldProperty(&charinfo::CharinfoPeer::pct_endurance),
+		"PetID", MakePeerFieldProperty(&charinfo::CharinfoPeer::pet_id),
+		"PetAffinity", MakePeerFieldProperty(&charinfo::CharinfoPeer::pet_affinity),
+		"NoCure", MakePeerFieldProperty(&charinfo::CharinfoPeer::no_cure),
+		"LifeDrain", MakePeerFieldProperty(&charinfo::CharinfoPeer::life_drain),
+		"ManaDrain", MakePeerFieldProperty(&charinfo::CharinfoPeer::mana_drain),
+		"EnduDrain", MakePeerFieldProperty(&charinfo::CharinfoPeer::endu_drain),
+		"Version", MakePeerFieldProperty(&charinfo::CharinfoPeer::version),
+		"CombatState", MakePeerFieldProperty(&charinfo::CharinfoPeer::combat_state),
+		"CastingSpellID", MakePeerFieldProperty(&charinfo::CharinfoPeer::casting_spell_id),
+		"Class", MakePeerFieldProperty(&charinfo::CharinfoPeer::class_info),
+		"Target", MakePeerFieldProperty(&charinfo::CharinfoPeer::target),
+		"Zone", MakePeerFieldProperty(&charinfo::CharinfoPeer::zone),
+		"State", MakePeerTableProperty(&charinfo::CharinfoPeer::state),
+		"BuffState", MakePeerTableProperty(&charinfo::CharinfoPeer::buff_state),
+		"Buff", MakePeerTableProperty(&charinfo::CharinfoPeer::buff),
+		"ShortBuff", MakePeerTableProperty(&charinfo::CharinfoPeer::short_buff),
+		"PetBuff", MakePeerTableProperty(&charinfo::CharinfoPeer::pet_buff),
+		"Gems", MakePeerTableProperty(&charinfo::CharinfoPeer::gems),
+		"FreeInventory", MakePeerTableProperty(&charinfo::CharinfoPeer::free_inventory),
+		"Experience", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L) {
+			if (peer.invalidated() || !peer.has_experience) return sol::make_object(L, sol::lua_nil);
+			return sol::make_object(L, peer.experience); }),
+		"MakeCamp", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L) {
+			if (peer.invalidated() || !peer.has_make_camp) return sol::make_object(L, sol::lua_nil);
+			return sol::make_object(L, peer.make_camp); }),
+		"Macro", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L) {
+			if (peer.invalidated() || !peer.has_macro) return sol::make_object(L, sol::lua_nil);
+			return sol::make_object(L, peer.macro); }),
 		"Stacks", sol::overload(
-			[](const charinfo::CharinfoPeer &peer, const std::string &spell)
-				{ return !peer.invalidated() && charinfo::StacksForPeer(peer, spell.c_str()); },
+			[](const charinfo::CharinfoPeer &peer, const std::string &spell) {
+				return !peer.invalidated() && charinfo::StacksForPeer(peer, spell.c_str()); },
 			[](const charinfo::CharinfoPeer &peer, const sol::object &spellArg) -> bool {
 				if (peer.invalidated()) return false;
 				sol::type t = spellArg.get_type();
 				if (t == sol::type::string) return charinfo::StacksForPeer(peer, spellArg.as<std::string>().c_str());
 				if (t == sol::type::number) return charinfo::StacksForPeer(peer, std::to_string(static_cast<int>(spellArg.as<double>())).c_str());
-				return false;
-			}),
+				return false; }),
 		"StacksPet", sol::overload(
-			[](const charinfo::CharinfoPeer &peer, const std::string &spell)
-				{ return !peer.invalidated() && charinfo::StacksPetForPeer(peer, spell.c_str()); },
+			[](const charinfo::CharinfoPeer &peer, const std::string &spell) {
+				return !peer.invalidated() && charinfo::StacksPetForPeer(peer, spell.c_str()); },
 			[](const charinfo::CharinfoPeer &peer, const sol::object &spellArg) -> bool {
 				if (peer.invalidated()) return false;
 				sol::type t = spellArg.get_type();
 				if (t == sol::type::string) return charinfo::StacksPetForPeer(peer, spellArg.as<std::string>().c_str());
 				if (t == sol::type::number) return charinfo::StacksPetForPeer(peer, std::to_string(static_cast<int>(spellArg.as<double>())).c_str());
-				return false;
-			}),
-
-		sol::meta_function::to_string, [](const charinfo::CharinfoPeer &peer)
-		{
-		if (peer.invalidated()) return std::string("(invalidated peer)");
-		return std::string("CharinfoPeer(") + peer.name + ")"; },
+				return false; }),
+		sol::meta_function::to_string, [](const charinfo::CharinfoPeer &peer) {
+			if (peer.invalidated()) return std::string("(invalidated peer)");
+			return std::string("CharinfoPeer(") + peer.name + ")"; },
 		sol::meta_function::equal_to, [](const charinfo::CharinfoPeer& a, const charinfo::CharinfoPeer& b) { return &a == &b; },
 		sol::meta_function::less_than, [](const charinfo::CharinfoPeer& a, const charinfo::CharinfoPeer& b) {
-			return std::less<const charinfo::CharinfoPeer*>()(&a, &b);
-		},
+			return std::less<const charinfo::CharinfoPeer*>()(&a, &b); },
 		sol::meta_function::less_than_or_equal_to, [](const charinfo::CharinfoPeer& a, const charinfo::CharinfoPeer& b) {
-			return !std::less<const charinfo::CharinfoPeer*>()(&b, &a);
-		});
+			return !std::less<const charinfo::CharinfoPeer*>()(&b, &a); });
 }
 
 } // namespace

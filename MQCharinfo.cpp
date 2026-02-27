@@ -38,19 +38,16 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 
 	using Id = mq::proto::charinfo::CharinfoMessageId;
 
-	if (msg.id() == Id::Publish && msg.has_publish())
-	{
+	if (msg.id() == Id::Publish && msg.has_publish()) {
 		const std::string& sender = msg.publish().sender();
-		if (!sender.empty())
-		{
+		if (!sender.empty()) {
 			charinfo::CharinfoPeer peer = charinfo::FromPublish(msg.publish());
 			charinfo::GetPeers()[sender] = std::make_shared<charinfo::CharinfoPeer>(std::move(peer));
 		}
 		return;
 	}
 
-	if (msg.id() == Id::Update && msg.has_update())
-	{
+	if (msg.id() == Id::Update && msg.has_update()) {
 		const auto& update = msg.update();
 		const std::string& sender = update.sender();
 		if (sender.empty())
@@ -63,14 +60,11 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		return;
 	}
 
-	if (msg.id() == Id::Remove && msg.has_remove())
-	{
+	if (msg.id() == Id::Remove && msg.has_remove()) {
 		const std::string& sender = msg.remove().sender();
-		if (!sender.empty())
-		{
+		if (!sender.empty()) {
 			auto it = charinfo::GetPeers().find(sender);
-			if (it != charinfo::GetPeers().end())
-			{
+			if (it != charinfo::GetPeers().end()) {
 				it->second->set_invalidated(true);
 				charinfo::GetPeers().erase(it);
 			}
@@ -78,17 +72,14 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 		return;
 	}
 
-	if (msg.id() == Id::Joined && msg.has_joined())
-	{
+	if (msg.id() == Id::Joined && msg.has_joined()) {
 		const std::string& joinedSender = msg.joined().sender();
 		if (pLocalPlayer && joinedSender == pLocalPlayer->DisplayedName)
 			return;
 
 		mq::proto::charinfo::CharinfoPublish payload;
 		if (!charinfo::BuildPublishPayload(&payload))
-		{
 			return;
-		}
 		mq::proto::charinfo::CharinfoMessage replyMsg;
 		replyMsg.set_id(mq::proto::charinfo::CharinfoMessageId::Publish);
 		*replyMsg.mutable_publish() = payload;
@@ -164,8 +155,7 @@ PLUGIN_API void InitializePlugin()
 PLUGIN_API void ShutdownPlugin()
 {
 	RemoveSettingsPanel(s_settingsPanelId.c_str());
-	if (s_actorRegistered)
-	{
+	if (s_actorRegistered) {
 		SendRemove();
 		s_charinfoDropbox.Remove();
 		s_actorRegistered = false;
@@ -174,18 +164,14 @@ PLUGIN_API void ShutdownPlugin()
 
 PLUGIN_API void SetGameState(int GameState)
 {
-	if (GameState == GAMESTATE_INGAME)
-	{
-		if (!s_actorRegistered)
-		{
+	if (GameState == GAMESTATE_INGAME) {
+		if (!s_actorRegistered) {
 			s_charinfoDropbox = postoffice::AddActor("charinfo", HandleMessage);
 			s_actorRegistered = true;
 		}
 	}
-	if (GameState < GAMESTATE_INGAME)
-	{
-		if (s_actorRegistered)
-		{
+	if (GameState < GAMESTATE_INGAME) {
+		if (s_actorRegistered) {
 			SendRemove();
 			s_charinfoDropbox.Remove();
 			s_actorRegistered = false;
@@ -207,8 +193,7 @@ PLUGIN_API void OnPulse()
 	if (!s_actorRegistered)
 		return;
 
-	if (!Initialized)
-	{
+	if (!Initialized) {
 		WriteChatf("[MQCharinfo]: Initialized. version %.2f", charinfo::CHARINFO_VERSION);
 		Initialized = true;
 		return;
@@ -224,20 +209,16 @@ PLUGIN_API void OnPulse()
 	if (!charinfo::BuildPublishPayload(&payload))
 		return;
 
-	if (!s_initialized || s_justZoned)
-	{
+	if (!s_initialized || s_justZoned) {
 		SendFullPublish(payload);
 		SendJoined(payload.sender());
 		s_lastPublished = payload;
 		s_initialized = true;
 		s_justZoned = false;
-	}
-	else
-	{
+	} else {
 		mq::proto::charinfo::CharinfoUpdate update;
 		update.set_sender(payload.sender());
-		if (charinfo::BuildUpdatePayload(payload, s_lastPublished, &update) && update.updates_size() > 0)
-		{
+		if (charinfo::BuildUpdatePayload(payload, s_lastPublished, &update) && update.updates_size() > 0) {
 			SendUpdate(update);
 			s_lastPublished = payload;
 		}
