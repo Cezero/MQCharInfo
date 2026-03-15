@@ -235,7 +235,7 @@ static void RegisterCharInfoUsertypes(sol::state_view L)
 
 } // namespace
 
-PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
+PLUGIN_API bool CreateLuaModule(sol::this_state s, sol::object& out_module)
 {
 	sol::state_view L(s);
 	RegisterCharInfoUsertypes(L);
@@ -278,5 +278,6 @@ PLUGIN_API sol::object CreateLuaModule(sol::this_state s)
 			std::string name = args.get<std::string>(1);
 			return self["GetInfo"].get<sol::function>()(name); });
 
-	return sol::make_object(L, module);
+	out_module = sol::make_object(L, module);
+	return true;
 }
