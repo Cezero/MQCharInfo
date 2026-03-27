@@ -60,6 +60,7 @@ enum CharinfoFieldId {
   FIELD_make_camp = 45;
   FIELD_macro = 46;
   FIELD_free_inventory = 47;
+  FIELD_lua = 48;
 }
 
 message SpellInfo {
@@ -123,6 +124,18 @@ message MacroInfo {
   string macro_name = 2;
 }
 
+message LuaScriptInfo {
+  int32 pid = 1;
+  string name = 2;
+  string path = 3;
+  string status = 4;
+  repeated string arguments = 5;
+}
+
+message LuaInfo {
+  repeated LuaScriptInfo scripts = 1;
+}
+
 message CharinfoPublish {
   string sender = 1;
   string name = 2;
@@ -181,6 +194,8 @@ message CharinfoPublish {
   MacroInfo macro = 46;
   // Free inventory by size (e.g. 5 elements for sizes 0-4)
   repeated int32 free_inventory = 47;
+  // Lua runtime info
+  LuaInfo lua = 48;
 }
 
 message CharinfoRemove {
@@ -208,6 +223,7 @@ message FieldUpdate {
     SpellInfoList spell_list = 13;
     Int32List int32_list = 14;
     bool b = 15;
+    LuaInfo lua = 16;
   }
 }
 

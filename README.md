@@ -143,6 +143,22 @@ Each peer is a table with the following keys. All data is read-only and comes fr
 | `MacroState` | number (0 = none, 1 = running, 2 = paused) |
 | `MacroName` | string |
 
+**Lua** (present when data is available)
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `Scripts` | array of tables | Running/paused scripts only. |
+
+`Lua.Scripts[i]` fields:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `PID` | number | Lua script PID. |
+| `Name` | string | Script name. |
+| `Path` | string | Script file path (empty for string scripts). |
+| `Status` | string | Script status (`RUNNING` or `PAUSED`). |
+| `Arguments` | array of strings | Script arguments. |
+
 ---
 
 ## Example

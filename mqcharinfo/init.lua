@@ -54,6 +54,16 @@
 ---@field MacroState number 0=none, 1=running, 2=paused
 ---@field MacroName string
 
+---@class CharinfoPeerLuaScript
+---@field PID number
+---@field Name string
+---@field Path string
+---@field Status string
+---@field Arguments string[]
+
+---@class CharinfoPeerLua
+---@field Scripts CharinfoPeerLuaScript[]
+
 ---@class CharinfoPeer
 ---@field Name string
 ---@field ID number
@@ -97,6 +107,7 @@
 ---@field Experience CharinfoPeerExperience|nil
 ---@field MakeCamp CharinfoPeerMakeCamp|nil
 ---@field Macro CharinfoPeerMacro|nil
+---@field Lua CharinfoPeerLua|nil
 ---@field Stacks fun(self: CharinfoPeer, spell: string|number): boolean
 ---@field StacksPet fun(self: CharinfoPeer, spell: string|number): boolean
 

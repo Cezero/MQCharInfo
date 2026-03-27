@@ -144,6 +144,61 @@ static void RegisterCharInfoUsertypes(sol::state_view L)
 		sol::meta_function::less_than, [](const charinfo::PeerMacroInfo& a, const charinfo::PeerMacroInfo& b) { return std::tie(a.macro_state, a.macro_name) < std::tie(b.macro_state, b.macro_name); },
 		sol::meta_function::less_than_or_equal_to, [](const charinfo::PeerMacroInfo& a, const charinfo::PeerMacroInfo& b) { return std::tie(a.macro_state, a.macro_name) <= std::tie(b.macro_state, b.macro_name); });
 
+	L.new_usertype<charinfo::PeerLuaScriptInfo>(
+		"PeerLuaScriptInfo", sol::no_constructor,
+		"PID", &charinfo::PeerLuaScriptInfo::pid,
+		"Name", &charinfo::PeerLuaScriptInfo::name,
+		"Path", &charinfo::PeerLuaScriptInfo::path,
+		"Status", &charinfo::PeerLuaScriptInfo::status,
+		"Arguments", [](const charinfo::PeerLuaScriptInfo& script, sol::this_state L) {
+			sol::state_view sv(L);
+			sol::table arr = sv.create_table();
+			for (size_t i = 0; i < script.arguments.size(); ++i)
+				arr[i + 1] = script.arguments[i];
+			return arr;
+		},
+		sol::meta_function::equal_to, [](const charinfo::PeerLuaScriptInfo& a, const charinfo::PeerLuaScriptInfo& b) {
+			return std::tie(a.pid, a.name, a.path, a.status, a.arguments) == std::tie(b.pid, b.name, b.path, b.status, b.arguments);
+		},
+		sol::meta_function::less_than, [](const charinfo::PeerLuaScriptInfo& a, const charinfo::PeerLuaScriptInfo& b) {
+			return std::tie(a.pid, a.name, a.path, a.status, a.arguments) < std::tie(b.pid, b.name, b.path, b.status, b.arguments);
+		},
+		sol::meta_function::less_than_or_equal_to, [](const charinfo::PeerLuaScriptInfo& a, const charinfo::PeerLuaScriptInfo& b) {
+			return std::tie(a.pid, a.name, a.path, a.status, a.arguments) <= std::tie(b.pid, b.name, b.path, b.status, b.arguments);
+		});
+
+	L.new_usertype<charinfo::PeerLuaInfo>(
+		"PeerLuaInfo", sol::no_constructor,
+		"Scripts", [](const charinfo::PeerLuaInfo& lua, sol::this_state L) {
+			sol::state_view sv(L);
+			sol::table arr = sv.create_table();
+			for (size_t i = 0; i < lua.scripts.size(); ++i)
+				arr[i + 1] = lua.scripts[i];
+			return arr;
+		},
+		sol::meta_function::equal_to, [](const charinfo::PeerLuaInfo& a, const charinfo::PeerLuaInfo& b) {
+			return a.scripts.size() == b.scripts.size()
+				&& std::equal(a.scripts.begin(), a.scripts.end(), b.scripts.begin(),
+					[](const charinfo::PeerLuaScriptInfo& lhs, const charinfo::PeerLuaScriptInfo& rhs) {
+						return std::tie(lhs.pid, lhs.name, lhs.path, lhs.status, lhs.arguments)
+							== std::tie(rhs.pid, rhs.name, rhs.path, rhs.status, rhs.arguments);
+					});
+		},
+		sol::meta_function::less_than, [](const charinfo::PeerLuaInfo& a, const charinfo::PeerLuaInfo& b) {
+			return std::lexicographical_compare(a.scripts.begin(), a.scripts.end(), b.scripts.begin(), b.scripts.end(),
+				[](const charinfo::PeerLuaScriptInfo& lhs, const charinfo::PeerLuaScriptInfo& rhs) {
+					return std::tie(lhs.pid, lhs.name, lhs.path, lhs.status, lhs.arguments)
+						< std::tie(rhs.pid, rhs.name, rhs.path, rhs.status, rhs.arguments);
+				});
+		},
+		sol::meta_function::less_than_or_equal_to, [](const charinfo::PeerLuaInfo& a, const charinfo::PeerLuaInfo& b) {
+			return !std::lexicographical_compare(b.scripts.begin(), b.scripts.end(), a.scripts.begin(), a.scripts.end(),
+				[](const charinfo::PeerLuaScriptInfo& lhs, const charinfo::PeerLuaScriptInfo& rhs) {
+					return std::tie(lhs.pid, lhs.name, lhs.path, lhs.status, lhs.arguments)
+						< std::tie(rhs.pid, rhs.name, rhs.path, rhs.status, rhs.arguments);
+				});
+		});
+
 	L.new_usertype<charinfo::PeerGemEntry>(
 		"PeerGemEntry", sol::no_constructor,
 		"ID", &charinfo::PeerGemEntry::id,
@@ -205,6 +260,9 @@ static void RegisterCharInfoUsertypes(sol::state_view L)
 		"Macro", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L) {
 			if (peer.invalidated() || !peer.has_macro) return sol::make_object(L, sol::lua_nil);
 			return sol::make_object(L, peer.macro); }),
+		"Lua", sol::property([](const charinfo::CharinfoPeer &peer, sol::this_state L) {
+			if (peer.invalidated() || !peer.has_lua) return sol::make_object(L, sol::lua_nil);
+			return sol::make_object(L, peer.lua); }),
 		"Stacks", sol::overload(
 			[](const charinfo::CharinfoPeer &peer, const std::string &spell) {
 				return !peer.invalidated() && charinfo::StacksForPeer(peer, spell.c_str()); },

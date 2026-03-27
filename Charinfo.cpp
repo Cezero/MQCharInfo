@@ -9,8 +9,12 @@
 #include <eqlib/game/EQData.h>
 #include <eqlib/game/Spells.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <sstream>
+#include <string_view>
 #include <vector>
 
 namespace charinfo {
@@ -72,6 +76,54 @@ static const struct { uint32_t bit; const char* name; } kBuffBitNames[] = {
 };
 static const size_t kNumBuffBitNames = sizeof(kBuffBitNames) / sizeof(kBuffBitNames[0]);
 static const size_t kNumDetrBuffBits = 24u;
+
+static std::string TrimAscii(std::string s)
+{
+	const auto isNotSpace = [](unsigned char ch) { return !std::isspace(ch); };
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotSpace));
+	s.erase(std::find_if(s.rbegin(), s.rend(), isNotSpace).base(), s.end());
+	return s;
+}
+
+static std::vector<std::string> SplitCSV(std::string_view input)
+{
+	std::vector<std::string> out;
+	std::string token;
+	std::stringstream ss{ std::string(input) };
+
+	while (std::getline(ss, token, ',')) {
+		token = TrimAscii(token);
+		if (!token.empty())
+			out.push_back(std::move(token));
+	}
+
+	return out;
+}
+
+static bool EvalMember(const MQTypeVar& source, const char* member, const char* index, MQTypeVar& out)
+{
+	if (!source.Type || !member || !member[0])
+		return false;
+
+	char indexBuf[MAX_STRING] = { 0 };
+	if (index && index[0])
+		strcpy_s(indexBuf, index);
+
+	return EvaluateMacroDataMember(source.Type, source.VarPtr, out, member, indexBuf) == 1;
+}
+
+static bool TypeVarToString(const MQTypeVar& value, std::string& out)
+{
+	if (!value.Type)
+		return false;
+
+	char buffer[MAX_STRING] = { 0 };
+	if (!value.Type->ToString(value.VarPtr, buffer))
+		return false;
+
+	out = buffer;
+	return true;
+}
 
 std::vector<std::string> StateBitsToStrings(uint32_t state_bits)
 {
@@ -268,6 +320,26 @@ CharinfoPeer FromPublish(const mq::proto::charinfo::CharinfoPublish& pub)
 		p.macro = mac;
 	} else {
 		p.has_macro = false;
+	}
+	if (pub.has_lua()) {
+		PeerLuaInfo lua;
+		lua.scripts.reserve(static_cast<size_t>(pub.lua().scripts_size()));
+		for (int i = 0; i < pub.lua().scripts_size(); ++i) {
+			const auto& src = pub.lua().scripts(i);
+			PeerLuaScriptInfo dst;
+			dst.pid = src.pid();
+			dst.name = src.name();
+			dst.path = src.path();
+			dst.status = src.status();
+			dst.arguments.reserve(static_cast<size_t>(src.arguments_size()));
+			for (int arg = 0; arg < src.arguments_size(); ++arg)
+				dst.arguments.push_back(src.arguments(arg));
+			lua.scripts.push_back(std::move(dst));
+		}
+		p.has_lua = true;
+		p.lua = std::move(lua);
+	} else {
+		p.has_lua = false;
 	}
 	return p;
 }
@@ -525,6 +597,63 @@ bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 		macro->set_macro_name(gszMacroName);
 	}
 
+	// --- Lua ---
+	{
+		auto* lua = out->mutable_lua();
+		MQDataItem* luaTlo = FindMQ2Data("Lua");
+		if (luaTlo) {
+			MQTypeVar luaVar;
+			if (luaTlo->Function("", luaVar)) {
+				MQTypeVar pidsVar;
+				std::string pidsText;
+				if (EvalMember(luaVar, "PIDs", nullptr, pidsVar) && TypeVarToString(pidsVar, pidsText) && !pidsText.empty()) {
+					for (const std::string& pidToken : SplitCSV(pidsText)) {
+						const int pid = GetIntFromString(pidToken.c_str(), 0);
+						if (pid <= 0)
+							continue;
+
+						char pidIndex[32] = { 0 };
+						sprintf_s(pidIndex, "%d", pid);
+
+						MQTypeVar scriptVar;
+						if (!EvalMember(luaVar, "Script", pidIndex, scriptVar))
+							continue;
+
+						MQTypeVar statusVar;
+						std::string status;
+						if (!EvalMember(scriptVar, "Status", nullptr, statusVar) || !TypeVarToString(statusVar, status))
+							continue;
+
+						status = TrimAscii(status);
+						if (status != "RUNNING" && status != "PAUSED")
+							continue;
+
+						auto* script = lua->add_scripts();
+						script->set_pid(pid);
+						script->set_status(status);
+
+						MQTypeVar nameVar;
+						std::string nameText;
+						if (EvalMember(scriptVar, "Name", nullptr, nameVar) && TypeVarToString(nameVar, nameText) && !nameText.empty())
+							script->set_name(nameText);
+
+						MQTypeVar pathVar;
+						std::string pathText;
+						if (EvalMember(scriptVar, "Path", nullptr, pathVar) && TypeVarToString(pathVar, pathText) && !pathText.empty())
+							script->set_path(pathText);
+
+						MQTypeVar argsVar;
+						std::string argsText;
+						if (EvalMember(scriptVar, "Arguments", nullptr, argsVar) && TypeVarToString(argsVar, argsText) && !argsText.empty()) {
+							for (const std::string& arg : SplitCSV(argsText))
+								script->add_arguments(arg);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// --- Free inventory (by size 0..4) ---
 	{
 		int freeSlots[5] = { 0 };
@@ -688,6 +817,11 @@ bool BuildUpdatePayload(const mq::proto::charinfo::CharinfoPublish& current,
 			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_macro); *u->mutable_macro() = current.macro(); any = true;
 		}
 	}
+	if (current.has_lua() || previous.has_lua()) {
+		if (current.lua().SerializeAsString() != previous.lua().SerializeAsString()) {
+			auto* u = out->add_updates(); u->set_field_id(Id::FIELD_lua); *u->mutable_lua() = current.lua(); any = true;
+		}
+	}
 	if (!Int32RepeatedEqual(current, previous, &mq::proto::charinfo::CharinfoPublish::free_inventory_size, &mq::proto::charinfo::CharinfoPublish::free_inventory)) {
 		auto* u = out->add_updates(); u->set_field_id(Id::FIELD_free_inventory);
 		auto* list = u->mutable_int32_list(); for (int i = 0; i < current.free_inventory_size(); i++) list->add_value(current.free_inventory(i)); any = true;
@@ -796,6 +930,7 @@ bool ApplyFieldUpdate(const mq::proto::charinfo::FieldUpdate& update,
 	case Id::FIELD_experience: if (update.has_experience()) *peer->mutable_experience() = update.experience(); break;
 	case Id::FIELD_make_camp: if (update.has_make_camp()) *peer->mutable_make_camp() = update.make_camp(); break;
 	case Id::FIELD_macro: if (update.has_macro()) *peer->mutable_macro() = update.macro(); break;
+	case Id::FIELD_lua: if (update.has_lua()) *peer->mutable_lua() = update.lua(); break;
 	case Id::FIELD_free_inventory:
 		if (update.has_int32_list()) {
 			peer->clear_free_inventory();
@@ -1000,6 +1135,26 @@ bool ApplyFieldUpdate(const mq::proto::charinfo::FieldUpdate& update, CharinfoPe
 			mac.macro_name = update.macro().macro_name();
 			peer->has_macro = true;
 			peer->macro = mac;
+		}
+		break;
+	case Id::FIELD_lua:
+		if (update.has_lua()) {
+			PeerLuaInfo lua;
+			lua.scripts.reserve(static_cast<size_t>(update.lua().scripts_size()));
+			for (int i = 0; i < update.lua().scripts_size(); ++i) {
+				const auto& src = update.lua().scripts(i);
+				PeerLuaScriptInfo dst;
+				dst.pid = src.pid();
+				dst.name = src.name();
+				dst.path = src.path();
+				dst.status = src.status();
+				dst.arguments.reserve(static_cast<size_t>(src.arguments_size()));
+				for (int arg = 0; arg < src.arguments_size(); ++arg)
+					dst.arguments.push_back(src.arguments(arg));
+				lua.scripts.push_back(std::move(dst));
+			}
+			peer->has_lua = true;
+			peer->lua = std::move(lua);
 		}
 		break;
 	case Id::FIELD_free_inventory:

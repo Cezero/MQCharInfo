@@ -62,6 +62,18 @@ struct PeerMacroInfo {
 	std::string macro_name;
 };
 
+struct PeerLuaScriptInfo {
+	int32_t pid = 0;
+	std::string name;
+	std::string path;
+	std::string status;
+	std::vector<std::string> arguments;
+};
+
+struct PeerLuaInfo {
+	std::vector<PeerLuaScriptInfo> scripts;
+};
+
 // Gems: each entry is ID + resolved Name, Category, Level (for Lua Gems[i].Name etc.).
 struct PeerGemEntry {
 	int32_t id = 0;
@@ -115,6 +127,8 @@ public:
 	PeerMakeCampInfo make_camp;
 	bool has_macro = false;
 	PeerMacroInfo macro;
+	bool has_lua = false;
+	PeerLuaInfo lua;
 
 private:
 	bool m_invalidated = false;
