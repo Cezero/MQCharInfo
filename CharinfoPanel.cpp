@@ -349,6 +349,36 @@ static void DrawPeerData(const charinfo::CharinfoPeer& peer)
 		}
 	}
 
+	// Lua
+	if (peer.has_lua) {
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+		if (ImGui::TreeNodeEx("Lua", ImGuiTreeNodeFlags_SpanFullWidth)) {
+			const auto& lua = peer.lua;
+			if (ImGui::TreeNodeEx("Scripts", ImGuiTreeNodeFlags_SpanFullWidth)) {
+				for (size_t i = 0; i < lua.scripts.size(); ++i) {
+					const auto& script = lua.scripts[i];
+
+					std::string argsDisplay;
+					for (size_t argIdx = 0; argIdx < script.arguments.size(); ++argIdx) {
+						if (!argsDisplay.empty()) argsDisplay += ", ";
+						argsDisplay += script.arguments[argIdx];
+					}
+					if (argsDisplay.empty())
+						argsDisplay = "(none)";
+
+					ImGui::TableNextRow(); ImGui::TableSetColumnIndex(0); ImGui::Text("[%zu] PID", i + 1); ImGui::TableSetColumnIndex(1); ImGui::Text("%d", script.pid);
+					ImGui::TableNextRow(); ImGui::TableSetColumnIndex(0); ImGui::Text("[%zu] Name", i + 1); ImGui::TableSetColumnIndex(1); ImGui::Text("%s", script.name.c_str());
+					ImGui::TableNextRow(); ImGui::TableSetColumnIndex(0); ImGui::Text("[%zu] Path", i + 1); ImGui::TableSetColumnIndex(1); ImGui::Text("%s", script.path.c_str());
+					ImGui::TableNextRow(); ImGui::TableSetColumnIndex(0); ImGui::Text("[%zu] Status", i + 1); ImGui::TableSetColumnIndex(1); ImGui::Text("%s", script.status.c_str());
+					ImGui::TableNextRow(); ImGui::TableSetColumnIndex(0); ImGui::Text("[%zu] Arguments", i + 1); ImGui::TableSetColumnIndex(1); ImGui::TextUnformatted(argsDisplay.c_str());
+				}
+				ImGui::TreePop();
+			}
+			ImGui::TreePop();
+		}
+	}
+
 	// Gems
 	ImGui::TableNextRow();
 	ImGui::TableSetColumnIndex(0);
