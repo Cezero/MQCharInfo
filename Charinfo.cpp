@@ -4,16 +4,14 @@
 
 #include "Charinfo.h"
 #include "mq/Plugin.h"
+#include <mq/base/String.h>
 
 #include <eqlib/game/Constants.h>
 #include <eqlib/game/EQData.h>
 #include <eqlib/game/Spells.h>
 
-#include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <cstdio>
-#include <sstream>
 #include <string_view>
 #include <vector>
 
@@ -77,26 +75,15 @@ static const struct { uint32_t bit; const char* name; } kBuffBitNames[] = {
 static const size_t kNumBuffBitNames = sizeof(kBuffBitNames) / sizeof(kBuffBitNames[0]);
 static const size_t kNumDetrBuffBits = 24u;
 
-static std::string TrimAscii(std::string s)
-{
-	const auto isNotSpace = [](unsigned char ch) { return !std::isspace(ch); };
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotSpace));
-	s.erase(std::find_if(s.rbegin(), s.rend(), isNotSpace).base(), s.end());
-	return s;
-}
-
 static std::vector<std::string> SplitCSV(std::string_view input)
 {
 	std::vector<std::string> out;
-	std::string token;
-	std::stringstream ss{ std::string(input) };
-
-	while (std::getline(ss, token, ',')) {
-		token = TrimAscii(token);
-		if (!token.empty())
-			out.push_back(std::move(token));
+	for (std::string_view part : mq::split_view(input, ',', false)) {
+		std::string t(part);
+		mq::trim(t);
+		if (!t.empty())
+			out.push_back(std::move(t));
 	}
-
 	return out;
 }
 
@@ -608,7 +595,7 @@ bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 				std::string pidsText;
 				if (EvalMember(luaVar, "PIDs", nullptr, pidsVar) && TypeVarToString(pidsVar, pidsText) && !pidsText.empty()) {
 					for (const std::string& pidToken : SplitCSV(pidsText)) {
-						const int pid = GetIntFromString(pidToken.c_str(), 0);
+						const int pid = GetIntFromString(pidToken, 0);
 						if (pid <= 0)
 							continue;
 
@@ -624,7 +611,7 @@ bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 						if (!EvalMember(scriptVar, "Status", nullptr, statusVar) || !TypeVarToString(statusVar, status))
 							continue;
 
-						status = TrimAscii(status);
+						mq::trim(status);
 						if (status != "RUNNING" && status != "PAUSED")
 							continue;
 
@@ -780,8 +767,8 @@ bool BuildUpdatePayload(const mq::proto::charinfo::CharinfoPublish& current,
 	ADD_SCALAR_I32(count_corruption, Id::FIELD_count_corruption);
 	ADD_SCALAR_I32(pet_hp, Id::FIELD_pet_hp);
 	ADD_SCALAR_I32(max_endurance, Id::FIELD_max_endurance);
-	ADD_SCALAR_I32(current_hp, Id::FIELD_current_hp);
-	ADD_SCALAR_I32(max_hp, Id::FIELD_max_hp);
+	ADD_SCALAR_I64(current_hp, Id::FIELD_current_hp);
+	ADD_SCALAR_I64(max_hp, Id::FIELD_max_hp);
 	ADD_SCALAR_I32(current_mana, Id::FIELD_current_mana);
 	ADD_SCALAR_I32(max_mana, Id::FIELD_max_mana);
 	ADD_SCALAR_I32(current_endurance, Id::FIELD_current_endurance);

@@ -99,7 +99,7 @@ public:
 	int32_t count_poison = 0, count_disease = 0, count_curse = 0, count_corruption = 0;
 	int32_t pet_hp = 0;
 	int32_t max_endurance = 0;
-	int32_t current_hp = 0, max_hp = 0;
+	int64_t current_hp = 0, max_hp = 0;
 	int32_t current_mana = 0, max_mana = 0;
 	int32_t current_endurance = 0, pct_endurance = 0;
 	int32_t pet_id = 0;

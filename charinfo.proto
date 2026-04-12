@@ -162,8 +162,8 @@ message CharinfoPublish {
   int32 pet_hp = 23;
   int32 max_endurance = 24;
   // Vitals (top-level)
-  int32 current_hp = 25;
-  int32 max_hp = 26;
+  int64 current_hp = 25;
+  int64 max_hp = 26;
   int32 current_mana = 27;
   int32 max_mana = 28;
   int32 current_endurance = 29;
