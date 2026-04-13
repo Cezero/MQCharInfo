@@ -559,7 +559,7 @@ bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 			auto* mc = out->mutable_make_camp();
 			float x = 0, y = 0, r = 0, d = 0;
 			int status = 0;
-			if (std::sscanf(buf, "%d:%f:%f:%f:%f", &status, &x, &y, &r, &d) >= 5) {
+			if (sscanf_s(buf, "%d:%f:%f:%f:%f", &status, &x, &y, &r, &d) >= 5) {
 				mc->set_status(status);
 				mc->set_x(x);
 				mc->set_y(y);
@@ -587,7 +587,7 @@ bool BuildPublishPayload(mq::proto::charinfo::CharinfoPublish* out)
 	// --- Lua ---
 	{
 		auto* lua = out->mutable_lua();
-		MQDataItem* luaTlo = FindMQ2Data("Lua");
+		MQTopLevelObject* luaTlo = FindMQ2Data("Lua");
 		if (luaTlo) {
 			MQTypeVar luaVar;
 			if (luaTlo->Function("", luaVar)) {
