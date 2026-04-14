@@ -13,7 +13,7 @@
 #include <chrono>
 #include <string>
 
-#include "extras/protobuf/ProtobufLibs.h"
+#include "mq/contrib/protobuf/ProtobufLibs.h"
 
 PreSetup("MQCharinfo");
 PLUGIN_VERSION(charinfo::CHARINFO_VERSION);
